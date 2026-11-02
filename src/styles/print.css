@@ -1,0 +1,19 @@
+@media print {
+  .sidebar,
+  .topbar,
+  .page-footer,
+  .bottom-actions {
+    display: none !important;
+  }
+  .main-shell {
+    margin: 0 !important;
+    width: 100% !important;
+  }
+  .main-shell main {
+    padding: 0 !important;
+  }
+  .panel {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}
