@@ -56,11 +56,11 @@ An explicit **Watch this step** option sends at most three sequential after-view
 
 The jig companion additionally supports **Record video**, **Take photo** and existing-file uploads for original-task and complete-trial evidence. See the [phone workflow and current access limits](docs/phone-access.md). The same phone browser owns its sessions; account/device handoff is not implemented.
 
-Vercel is the requested public host, but no public URL is deployed. The current SQLite/media/ffmpeg/worker backend needs persistent hosting or a managed-service migration; a normal Vercel import alone cannot run it. See the [concrete Vercel deployment assessment](docs/vercel-deployment.md).
+Vercel is the public frontend host. The user's Render backend is deployed at `https://countershot-api.onrender.com`; the Vercel frontend is being configured. The root [vercel.json](vercel.json) supplies that public backend URL to Vercel's build and runtime. SQLite, media, ffmpeg, the worker and credentials stay on the persistent backend. See the [Vercel deployment guide](docs/vercel-deployment.md).
 
 The selected setup is Vercel plus one persistent backend. API routing and short-lived direct media uploads are implemented so large phone recordings bypass the frontend's upload limit. Local HTTPS/container tests passed; production host configuration and a real-phone check remain.
 
-Render is the selected persistent backend. The root [Render Blueprint](render.yaml) creates one Docker service with a disk and manual deploys; see [the Render/Vercel setup guide](docs/render-deployment.md). Connect both accounts to the repository, deploy Render first, then configure Vercel with its actual backend HTTPS origin. Production secrets belong only on Render.
+Render is the selected persistent backend. The root [Render Blueprint](render.yaml) creates one Docker service with a disk and manual deploys; see [the Render/Vercel setup guide](docs/render-deployment.md). Once Vercel's stable production address is known, configure both trusted origins on Render together. Production secrets belong only on Render.
 
 ## The jig-design companion
 

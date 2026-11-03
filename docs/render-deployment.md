@@ -1,6 +1,6 @@
 # Render backend and Vercel frontend
 
-The selected deployment uses one Render Docker web service with a persistent disk, and Vercel for the public interface. This document and [render.yaml](../render.yaml) prepare the configuration; they do not mean either service has been created. Neither hosting account is connected from this environment.
+The selected deployment uses one Render Docker web service with a persistent disk, and Vercel for the public interface. The user's screenshots show `https://countershot-api.onrender.com` Live on commit `8613af3`, including the web process and worker. The Vercel frontend is being configured. Neither hosting account is connected to this agent's tools, and deployed phone, storage-restart and live Meta checks remain pending.
 
 The Render service handles Meta requests, video decoding and conversion, background jobs, and the project's private API. Its 5 GB disk stores SQLite project records and uploaded media across restarts. The Dockerfile starts the API and worker together. Vercel provides the public web and phone interface; Render provides its processing and storage.
 
@@ -40,7 +40,7 @@ Create the backend with **both** `APP_PUBLIC_ORIGIN` and `PUBLIC_API_ORIGIN` abs
 
 Once that service is healthy:
 
-- In Vercel, import the same repository and reviewed branch as a **Next.js** project. Use `npm run build`, repository root, and the framework's default output settings. Set `COUNTERSHOT_BACKEND_ORIGIN` to the exact assigned Render HTTPS origin before the first Vercel build.
+- In Vercel, import the same repository's `main` branch as a **Next.js** project. Use `npm run build`, repository root, and the framework's default output settings. The root `vercel.json` supplies `COUNTERSHOT_BACKEND_ORIGIN=https://countershot-api.onrender.com` during build and runtime.
 - Obtain the stable Vercel project URL. On Render, set **both** `APP_PUBLIC_ORIGIN=https://your-stable-project.vercel.app` and `PUBLIC_API_ORIGIN=https://your-assigned-service.onrender.com` using their actual values, then manually deploy the configured backend.
 - Keep origins bare: HTTPS scheme and host only, with no path, credentials, query or fragment. A temporary Vercel preview hostname is not automatically trusted. Changing the Vercel backend target requires a frontend rebuild.
 
