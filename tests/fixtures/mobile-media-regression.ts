@@ -189,7 +189,13 @@ try {
     await checkRanges(asset);
   } else if (scenario === 'rotation-codec') {
     const base = await generateMp4(), rotated = path.join(root, 'rotated.mp4');
-    await ffmpeg(['-display_rotation:v:0', '90', '-i', base, '-c', 'copy', rotated]);
+    // FFmpeg 5 sets the display matrix through metadata; newer releases expose an input option.
+    // Both paths must produce the same independently checked 90-degree source below.
+    const help = (await run('ffmpeg', ['-hide_banner', '-h', 'full'], { timeout: 15_000, maxBuffer: 4_000_000 })).stdout;
+    const rotationArgs = help.includes('-display_rotation')
+      ? ['-display_rotation:v:0', '90', '-i', base, '-c', 'copy']
+      : ['-i', base, '-c', 'copy', '-metadata:s:v:0', 'rotate=90'];
+    await ffmpeg([...rotationArgs, rotated]);
     assert.equal((await probe(rotated)).streams[0].side_data_list?.[0].rotation, 90);
     const asset = await successful(await submit(await readFile(rotated), 'portrait-phone.mp4', 'trial'));
     await checkNormalized(asset, rotated, 'portrait-phone.mp4', 'video/mp4');
@@ -211,11 +217,14 @@ try {
     const source = await generateMov('variable.mov', true);
     const inputTimes = await frameTimes(source);
     assert.equal(inputTimes.length, 25);
+    assert.equal(inputTimes[0], 0);
     assert.ok(inputTimes.some((time, index) => index > 0 && time - inputTimes[index - 1] > 0.09));
     const asset = await successful(await submit(await readFile(source), 'variable.mov'));
     await checkNormalized(asset, source, 'variable.mov', 'video/quicktime');
     const outputTimes = await frameTimes(path.join(store.assetRoot, asset.storageKey));
     assert.equal(outputTimes.length, inputTimes.length);
+    assert.ok(Math.abs(outputTimes[0] - inputTimes[0]) < 0.05,
+      'Normalization cannot add a long lead-in to a video that starts at zero; brief AAC priming is allowed.');
     for (let index = 0; index < inputTimes.length; index++)
       assert.ok(Math.abs((outputTimes[index] - outputTimes[0]) - (inputTimes[index] - inputTimes[0])) < 0.02, 'Variable frame timestamps must be preserved.');
   } else if (scenario === 'quota') {

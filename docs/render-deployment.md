@@ -2,9 +2,19 @@
 
 The selected deployment uses one Render Docker web service with a persistent disk, and Vercel for the public interface. This document and [render.yaml](../render.yaml) prepare the configuration; they do not mean either service has been created. Neither hosting account is connected from this environment.
 
+The Render service handles Meta requests, video decoding and conversion, background jobs, and the project's private API. Its 5 GB disk stores SQLite project records and uploaded media across restarts. The Dockerfile starts the API and worker together. Vercel provides the public web and phone interface; Render provides its processing and storage.
+
 ## Render setup
 
-Connect the `j420/j420-CounterShot` repository in Render. Create a **Blueprint** from `codex/grounded-meta-loop`, or from `main` after the PR is reviewed and merged. Render should discover the root `render.yaml` and Dockerfile. Preview the resources before creating them.
+From the [Render dashboard](https://dashboard.render.com/):
+
+1. Choose **New + → Blueprint**.
+2. Connect GitHub if prompted, granting repository access to `j420/j420-CounterShot`, then select that repository.
+3. Use branch **`main`**, Blueprint file **`render.yaml`** at the repository root, and a Blueprint name such as **`countershot`**. The application PR is merged into `main`.
+4. Review the service and disk below, including Render's displayed price. The Blueprint selects paid resources.
+5. Enter the real Meta key in the **`MODEL_API_KEY`** secret prompt and create the Blueprint. Render supplies an HTTPS address after the Docker build and initial deployment.
+
+Render should discover the root Dockerfile automatically. Keep its default Docker commands and initially leave both origin settings absent as described below.
 
 The Blueprint selects:
 

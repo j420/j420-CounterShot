@@ -110,13 +110,15 @@ export async function prepareMedia(inputPath: string, normalizedPath: string, fo
   // Preserve timestamps, all video frames, orientation and the first audio track.
   // A bounded H.264/AAC copy makes native phone footage playable and provider-compatible.
   // The uploaded original remains separate and byte-exact for evidence provenance.
+  // B-frame reordering makes older FFmpeg shift the entire VFR timeline to avoid negative DTS.
+  // Disable that encoder delay while preserving the source presentation intervals.
   const durationSeconds = source.durationMs! / 1000;
   const audioBitrate = source.audio.length ? 128_000 : 0;
   const videoBitrate = Math.max(128_000, Math.min(8_000_000, Math.floor(byteLimit * 8 * 0.9 / durationSeconds) - audioBitrate));
   await run('ffmpeg', ['-v', 'error', '-xerror', '-nostdin', '-threads', '2', '-err_detect', 'explode', '-max_pixels', String(maxPixels),
     '-protocol_whitelist', 'file,pipe', '-i', inputPath, '-map', `0:${source.stream.index}`, '-map', '0:a:0?', '-sn', '-dn',
     '-map_metadata', '-1', '-metadata:s:v:0', 'rotate=0', '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
-    '-c:v', 'libx264', '-preset', 'veryfast', '-threads', '2', '-pix_fmt', 'yuv420p', '-b:v', String(videoBitrate), '-maxrate', String(videoBitrate), '-bufsize', String(videoBitrate * 2),
+    '-c:v', 'libx264', '-bf', '0', '-preset', 'veryfast', '-threads', '2', '-pix_fmt', 'yuv420p', '-b:v', String(videoBitrate), '-maxrate', String(videoBitrate), '-bufsize', String(videoBitrate * 2),
     '-vsync', '0', '-c:a', 'aac', '-b:a', '128k', '-avoid_negative_ts', 'make_zero', '-movflags', '+faststart',
     '-fs', String(byteLimit + 1), '-f', 'mp4', normalizedPath,
   ], { timeout: 90_000, maxBuffer: 1_000_000 });
