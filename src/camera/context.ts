@@ -97,6 +97,8 @@ export function buildCameraContext(input: {
         promptVersion, workflowHash: cameraContextHash(workflow) } },
     workflow: { id: workflow.id, iteration: workflow.iteration, title: workflow.title,
       physicalScope: workflow.physicalScope, limitations: workflow.limitations },
+    ...(session.setupContext ? { taskIntent: { ...structuredClone(session.setupContext),
+      provenance: 'operator_entered_goal_and_context_not_camera_measured', sceneIntakeIsNotActionEvidence: true } } : {}),
     currentStep: step,
     currentFactDefinitions: workflow.requiredFacts.filter(fact => step.requiredFactIds.includes(fact.id)),
     allowedMeasurementRequests: workflow.requiredFacts.filter(fact => step.requiredFactIds.includes(fact.id) && fact.kind === 'number'),

@@ -5,7 +5,9 @@ import { NextRequest } from 'next/server';
 export const runtime = 'nodejs';
 export const GET = route(req => {
   const startedAt = performance.now();
-  return NextResponse.json(cameraResponseData(cameraSessions(req), startedAt), { headers: { 'Cache-Control': 'private, no-store' } });
+  // Establish ownership before a paid intake POST, so a lost response can be recovered safely.
+  const browser = sessionFor(req);
+  return setSession(NextResponse.json(cameraResponseData(cameraSessions(req), startedAt), { headers: { 'Cache-Control': 'private, no-store' } }), req, browser);
 });
 export const POST = route(async req => {
   const startedAt = performance.now();

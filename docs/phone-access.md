@@ -6,12 +6,14 @@ The intended entry point is one **HTTPS web address**, opened in the phone's nor
 
 The [simplified interface](ui-simplification.md) keeps a three-step diagram and a short explanation of the expected photo or video result. Longer instructions and history are expandable; the next action, expected change and stop condition stay visible.
 
-1. Open `/camera`, choose one of the five workflows and confirm the actual target, permitted resources and measurements. Unknown facts stay unknown.
-2. Start the rear-camera preview. It stays on the device; inspect the selected setup frame when ready. A JPEG/PNG checkpoint is a fallback with unknown actual capture time.
-3. Review the model's proposed next move, expected visible result and stop condition beside the preview. Its boxes belong to the saved assessed image, not the moving camera feed.
-4. Perform the permitted action and inspect a new after-view. Under **Watch options**, the optional **Watch this step** sends at most three sequential checks and stops on uncertainty, an error or a scene change. You can stop it; an already running request may still finish.
-5. Enter actual numeric readings and physical checks. Above/below-limit results cannot pass because a checkbox is checked. Record a failed or incomplete attempt, correct the specific issue and obtain new evidence before retrying.
-6. Complete each phase with an explicit operator review. Undo and fact/scene reset retain the earlier review history. The final status records the reviews; it does not certify physical performance.
+1. Open `/camera` and allow the rear-camera preview. It stays on the device; a JPEG/PNG photo is available when the camera cannot open. An uploaded photo's actual capture time remains unknown.
+2. Enter a short goal and optional context, then choose **Understand this view**. Only that deliberately selected snapshot is sent to Meta.
+3. Review the suggested workflow and scene details against the saved image. Unsupported or unclear scenes request clarification rather than becoming a guessed workflow.
+4. Choose the workflow, then confirm one current-phase prerequisite at a time. Visible text drafts can be checked with a tap. Measurements, hidden conditions and scope still need an explicit operator confirmation; nothing is automatically copied into confirmed facts.
+5. Inspect a fresh setup checkpoint to obtain a proposed next move, expected visible result and stop condition. Its boxes belong to that saved assessed image, not the moving camera feed or the earlier intake image.
+6. Perform the permitted action and inspect a new after-view. Under **Watch options**, the optional **Watch this step** sends at most three sequential checks and stops on uncertainty, an error or a scene change. You can stop it; an already running request may still finish.
+7. Enter actual numeric readings and physical checks. Above/below-limit results cannot pass because a checkbox is checked. Record a failed or incomplete attempt, correct the specific issue and obtain new evidence before retrying.
+8. Complete each phase with an explicit operator review. Undo and fact/scene reset retain the earlier review history. The final status records the reviews; it does not certify physical performance.
 
 Response age uses the server's receipt clock plus monotonic elapsed time, so a phone wall-clock change cannot extend guidance freshness. Stale, occluded, uncertain or changed views hold actions and confirmation. Actual returned synthetic-image checks took 6.7–11.2 seconds; this is not instantaneous tracking or a latency guarantee.
 

@@ -111,12 +111,32 @@
 .historyArchive > summary { margin-bottom: 12px; color: #627654; }
 .hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
 .busy { animation: turn 1s linear infinite; }
+.sceneEntry { margin-bottom: 24px; }
+.sceneHeading { margin-bottom: 18px; }
+.sceneHeading h1 { margin: 7px 0 9px; font-size: clamp(26px, 3.4vw, 38px); line-height: 1.16; letter-spacing: -.9px; }
+.sceneHeading p { margin: 0; color: #6c7862; font-size: 14px; line-height: 1.7; }
+.sceneEntry .coach > .field textarea { min-height: 72px; }
+.sceneResult { margin-top: 22px; border-top: 1px solid #dce2d1; padding-top: 15px; }
+.sceneResult h2 { margin: 0 0 10px; font-size: 22px; line-height: 1.3; letter-spacing: -.4px; }
+.sceneResult ul { padding-left: 19px; font-size: 12px; color: #65765a; line-height: 1.8; }
+.prerequisite { border: 1px solid #d2dfc4; border-radius: 10px; padding: 17px; margin: 18px 0; background: #f0f6e9; }
+.prerequisite h3 { font-size: 18px; line-height: 1.4; margin: 8px 0 14px; letter-spacing: -.2px; }
+.prerequisite p { font-size: 12px; }
+.factDraft { margin: 13px 0; padding: 13px 15px; background: #fcfdf8; border-left: 3px solid #8fa77a; border-radius: 0 7px 7px 0; color: #334b29; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sceneContext { margin: 17px 0; padding: 13px 0; border-top: 1px solid #dce2d1; border-bottom: 1px solid #dce2d1; }
+.sceneContext summary { cursor: pointer; font-size: 12px; font-weight: 650; color: #65765a; }
+.sceneContext img { display: block; width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; background: #1d2924; margin-top: 12px; }
+.readingsSummary { margin: 14px 0; font-size: 12px; line-height: 1.6; color: #65765a; }
+.readingsSummary > div { display: flex; align-items: center; gap: 8px; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #e1e8d8; overflow-wrap: anywhere; }
+.readingsSummary .button { min-height: 34px; padding: 5px 8px; flex: 0 0 auto; font-size: 10px; }
 @keyframes turn { to { transform: rotate(360deg); } }
 @media (max-width: 1080px) { .workflowGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .workspace { grid-template-columns: minmax(0, 1.15fr) minmax(290px, .85fr); gap: 14px; } }
 @media (max-width: 760px) { .topbar { padding: 15px 17px; } .topbarLinks .badge { display: none; } .content { padding: 22px 16px 32px; } .workflowGrid { display: flex; overflow-x: auto; padding-bottom: 7px; margin: 20px 0; scroll-snap-type: x proximity; } .workflowCard { flex: 0 0 215px; scroll-snap-align: start; } .setup, .workspace { grid-template-columns: minmax(0, 1fr); } .setup { padding: 19px; gap: 12px; } .cameraControls .button { flex: 1 1 135px; min-height: 48px; } .cameraStage { border-radius: 10px; } .coach { padding: 20px; } .sessionHeader { flex-direction: column; gap: 10px; } .sessionHeader h2 { font-size: 24px; } .field textarea, .field input, .field select { font-size: 16px; } .facts { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .busy { animation: none; } }
 @media (max-width: 550px) { .brand > .badge { display: none; } }
 @media (max-width: 760px) {
+  .sceneSubmit { position: fixed; left: 12px; right: 12px; bottom: max(9px, env(safe-area-inset-bottom)); z-index: 20; padding: 9px; margin: 0; border: 1px solid #d6dfc9; border-radius: 10px; background: #f5f5eef2; box-shadow: 0 3px 20px #263a3126; }
+  .sceneSubmit .button { flex: 1 1 110px; }
   .flowDiagram { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 18px; }
   .flowDiagram li { gap: 12px; }
   .flowIcon { width: 32px; height: 32px; }

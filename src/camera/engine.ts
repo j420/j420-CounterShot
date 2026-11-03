@@ -255,6 +255,33 @@ export function answerCameraMeasurementRequest<T extends CameraSession>(session:
   return next;
 }
 
+/** Admit one operator-confirmed, previously unknown prerequisite without restarting completed phases. */
+export function confirmCameraPrerequisite<T extends CameraSession>(session: T, input: {
+  factKey: string; value: string | number | boolean; unit?: string | null; operatorConfirmed: true;
+}, workflow: WorkflowDefinition, at: string): T {
+  timestamp(at, 'Prerequisite confirmation');
+  const step = currentStep(session, workflow);
+  if (!step || session.status !== 'active') reject(409, 'This run has no active phase for a new prerequisite.');
+  if (input.operatorConfirmed !== true) reject(400, 'A person must explicitly confirm this prerequisite.');
+  if (unsupportedAssessment(session)) reject(409, 'Reconfirm the setup under the current decision contract first.');
+  if (openCameraEvidenceRequest(session)) reject(409, 'Answer or cancel the current evidence request before confirming another prerequisite.');
+  const definition = workflow.requiredFacts.find(fact => fact.id === input.factKey);
+  if (!definition || !step.requiredFactIds.includes(definition.id)) reject(400, 'Confirm only a prerequisite needed by the current phase.');
+  if (definition.kind === 'number' ? input.unit !== definition.unit : input.unit !== undefined && input.unit !== null)
+    reject(400, 'Confirm the prerequisite in its exact declared unit.');
+  const previous = session.facts[definition.id];
+  if (previous !== undefined && previous !== '')
+    reject(409, 'This prerequisite is already recorded. Changing a known value requires an explicit setup reset.');
+  const facts = validateCameraFacts(workflow, { ...session.facts, [definition.id]: input.value });
+  if (facts[definition.id] === '') reject(400, 'Enter the actual prerequisite description before confirming it.');
+  const next: T = { ...structuredClone(session), facts, revision: session.revision + 1, updatedAt: at,
+    beforeTurn: null, latestTurn: null,
+    evidenceRequests: staleCameraEvidenceRequests(session.evidenceRequests, at, 'A new operator-confirmed prerequisite requires a fresh view under the updated facts.') };
+  if (next.reasoning) next.reasoning.activePredictionId = null;
+  next.guidance = deriveGuidance(next, workflow, at);
+  return next;
+}
+
 export function cancelCameraEvidenceRequest<T extends CameraSession>(session: T, requestId: string, workflow: WorkflowDefinition, at: string): T {
   const request = currentEvidenceRequest(session, requestId);
   const next: T = { ...structuredClone(session), latestTurn: null, revision: session.revision + 1, updatedAt: at,

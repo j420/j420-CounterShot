@@ -2,9 +2,10 @@ import { test, expect, type Page } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { cameraWorkflow, cameraWorkflows, syntheticCameraFacts, syntheticCameraMeasurements } from '../src/camera/workflows';
-import { acceptCameraPlanChange, answerCameraMeasurementRequest, applyCameraAssessment, bindCameraEntity, cancelCameraEvidenceRequest, confirmCameraStep, createCameraSession, getCurrentReportedFailures, initializeCameraReasoning, openCameraEvidenceRequest, recordCameraReadingReport, recordCameraStepReview, refreshCameraGuidance, registerCameraEvidenceRequest, reviseCameraSession, undoLastCameraStep } from '../src/camera/engine';
+import { acceptCameraPlanChange, answerCameraMeasurementRequest, applyCameraAssessment, bindCameraEntity, cancelCameraEvidenceRequest, confirmCameraPrerequisite, confirmCameraStep, createCameraSession, getCurrentReportedFailures, initializeCameraReasoning, openCameraEvidenceRequest, recordCameraReadingReport, recordCameraStepReview, refreshCameraGuidance, registerCameraEvidenceRequest, reviseCameraSession, undoLastCameraStep } from '../src/camera/engine';
 import { CAMERA_ENGINE_VERSION, CAMERA_SCHEMA_VERSION, type CameraAssessment, type CameraAssessmentV2, type CameraDecisionKind, type CameraSession, type CameraTurn, type LegacyCameraAssessment, type StoredCameraAssessment } from '../src/camera/schema';
-import { createExecutionBudget, DEFAULT_CAMERA_EXECUTION_LIMITS, recordInvocationResponse, reserveInvocation } from '../src/meta/budget';
+import { cancelExecutionBudget, createExecutionBudget, DEFAULT_CAMERA_EXECUTION_LIMITS, recordInvocationResponse, reserveInvocation } from '../src/meta/budget';
+import type { PublicCameraIntake } from '../src/camera/intake-contract';
 
 test.use({ baseURL: process.env.BROWSER_BASE_URL || 'http://127.0.0.1:3001', launchOptions: {
   executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined),
@@ -39,7 +40,7 @@ async function syntheticBench(page: Page, after: boolean, viewLabel = '') {
 }
 
 /** Offline UI fixture: real browser camera/file handling, deterministic engine, no provider. */
-async function cameraFixture(page: Page) {
+async function cameraFixture(page: Page, options: { native?: boolean; scene?: () => PublicCameraIntake | null; loseAdoptionResponse?: () => boolean } = {}) {
   let workflow = cameraWorkflows[0];
   let session: Session | null = null;
   let sequence = 0;
@@ -56,6 +57,7 @@ async function cameraFixture(page: Page) {
   let failNextAnswer = false;
   let breakNextFrame = false;
   let sessionReads = 0;
+  let sessionCreates = 0;
   const brokenFrames = new Set<string>();
   const frames: { id: string; url: string; source: string; capturedAt: string | null; receivedAt: string; purpose: string; stepId: string; revision: number }[] = [];
   const turns: { id: string; frameId: string; operationId: string; status: string; assessment: StoredCameraAssessment | null; error: string | null; createdAt: string; completedAt: string | null; trace: { latencyMs: number; providerResponseId?: string } }[] = [];
@@ -66,15 +68,25 @@ async function cameraFixture(page: Page) {
   const initialize = (current: Session) => initializeCameraReasoning(current, workflow, {runId:current.id,factsHash:createHash('sha256').update(JSON.stringify(current.facts)).digest('hex')});
   const state = () => {
     const current = preserveStaleGuidance ? structuredClone(session!) : refreshCameraGuidance(session!, workflow, clock());
-    return { session: { ...current, openRequest: openCameraEvidenceRequest(current) }, workflow, frames, turns, serverNow: clock(), serverProcessingMs: 0, meta: { configured: true, model: 'offline-browser-fixture' }, limits: { maxTurns: 20, maxFrameBytes: 307200 } };
+    return { session: { ...current, openRequest: openCameraEvidenceRequest(current) }, workflow, frames, turns, serverNow: clock(), serverProcessingMs: 0,
+      ...(options.native ? { capabilities: { sceneIntake: true, progressivePrerequisites: true }, intake: options.scene?.() || null } : {}),
+      meta: { configured: true, model: 'offline-browser-fixture' }, limits: { maxTurns: 20, maxFrameBytes: 307200 } };
   };
   await page.route('**/api/camera/sessions**', async route => {
     const request = route.request(), pathname = new URL(request.url()).pathname;
     try {
       if (pathname === '/api/camera/sessions') {
-        if (request.method() === 'GET') { await route.fulfill({ json: { sessions: session ? [session] : [], workflows: cameraWorkflows, serverNow: clock(), meta: { configured: true, model: 'offline-browser-fixture' } } }); return; }
+        if (request.method() === 'GET') { await route.fulfill({ json: { sessions: session ? [session] : [], workflows: cameraWorkflows, serverNow: clock(), ...(options.native ? { capabilities: { sceneIntake: true, progressivePrerequisites: true } } : {}), meta: { configured: true, model: 'offline-browser-fixture' } } }); return; }
         const body = request.postDataJSON(); workflow = cameraWorkflow(body.workflowId)!;
-        session = initialize({ ...createCameraSession(workflow, body.facts, clock()), id: '00000000-0000-4000-8000-000000000001', activeTurnId: null });
+        sessionCreates++;
+        session = initialize({ ...createCameraSession(workflow, body.facts, clock()), id: body.intakeId || '00000000-0000-4000-8000-000000000001', activeTurnId: null });
+        if (body.intakeId) {
+          const intake = options.scene?.(); expect(intake?.id).toBe(body.intakeId); expect(intake?.revision).toBe(body.intakeRevision);
+          expect(body.facts).toEqual({});
+          session = { ...session, setupContext: { intakeId: intake!.id, goal: intake!.goal, context: intake!.context }, executionBudget: structuredClone(intake!.executionBudget) };
+          intake!.status = 'adopted'; intake!.adoptedSessionId = session.id;
+          if (options.loseAdoptionResponse?.()) { await route.abort('failed'); return; }
+        }
         await route.fulfill({ json: state() }); return;
       }
       if (!session) { await route.fulfill({ status: 404, json: { error: 'No fixture session' } }); return; }
@@ -170,7 +182,9 @@ async function cameraFixture(page: Page) {
       }
       const body = request.postDataJSON(); patches.push(body);
       expect(body.expectedRevision).toBe(session.revision);
-      if (body.action === 'request_answer') {
+      if (body.action === 'prerequisite') {
+        session = confirmCameraPrerequisite(session, body, workflow, clock());
+      } else if (body.action === 'request_answer') {
         if (failNextAnswer) { failNextAnswer = false; await route.abort('failed'); return; }
         session = answerCameraMeasurementRequest(session, { requestId: body.requestId, value: body.value, unit: body.unit, operationId: body.clientOperationId }, workflow, clock());
       } else if (body.action === 'request_cancel') {
@@ -191,7 +205,7 @@ async function cameraFixture(page: Page) {
     }
   });
   return {
-    get session() { return session!; }, get workflow() { return workflow; }, get sessionReads() { return sessionReads; }, framePosts, patches, turns,
+    get session() { return session!; }, get workflow() { return workflow; }, get sessionReads() { return sessionReads; }, get sessionCreates() { return sessionCreates; }, framePosts, patches, turns,
     keepActionNeeded() { actionNeeded = true; },
     chooseNextDecision(kind: CameraDecisionKind) { nextDecision = kind; },
     chooseNextComparison(status:'supported_by_view'|'contradicted'|'unresolved') {nextComparison=status;},
@@ -199,6 +213,7 @@ async function cameraFixture(page: Page) {
     proposeEntityHypothesisNext() {nextEntityHypothesis=true;},
     reopenEarlierPhaseNext() {nextDecision='propose_plan_change';reopenPlan=true;},
     failNextRequestAnswer() { failNextAnswer = true; },
+    resetNativeFacts() { session = initialize({ ...reviseCameraSession(session!, {}, workflow, clock()), activeTurnId: null }); },
     seedMixedDecision() {
       const turn = session!.latestTurn!;
       const mixed = { ...turn.assessment, decisionKind: 'request_view', viewRequest: { instruction: 'Invalid mixed-payload request.', whyNeeded: 'Offline corrupted-record regression.', resolves: 'No proposal may be displayed.', targetObservationIds: ['target'] } } as CameraAssessment;
@@ -256,10 +271,86 @@ async function cameraFixture(page: Page) {
   };
 }
 
+/** Deterministic scene-intake transport fixture; no actual model or physical claim. */
+async function nativeSceneFixture(page: Page) {
+  let intake: PublicCameraIntake | null = null;
+  let responseKind: 'supported' | 'unsupported' | 'view' = 'supported';
+  let loseNextResponse = false;
+  let pendingNext = false;
+  let loseAdoptionResponse = false;
+  let rejectNextStatus: number | null = null;
+  let sequence = 0;
+  const images = new Map<string, Buffer>();
+  const posts: { goal: string; context: string; source: string; capturedAt: string; operationId: string; intakeId: string | null; expectedRevision: number | null }[] = [];
+  const operations = new Map<string, string>();
+  const gets: string[] = [];
+  const browserFixture = await cameraFixture(page, { native: true, scene: () => intake,
+    loseAdoptionResponse() { const lose = loseAdoptionResponse; loseAdoptionResponse = false; return lose; } });
+  const state = () => ({ intake, meta: { configured: true, model: 'offline-scene-fixture', configurationError: null }, serverNow: new Date().toISOString() });
+  await page.route('**/api/camera/intakes**', async route => {
+    const request = route.request(), url = new URL(request.url());
+    if (request.method() === 'GET') {
+      gets.push(url.pathname + url.search);
+      if (url.pathname.includes('/frames/')) {
+        const bytes = images.get(url.pathname.split('/').at(-1)!);
+        await route.fulfill(bytes ? { contentType: 'image/jpeg', body: bytes } : { status: 404, json: { error: 'Unknown synthetic scene frame.' } }); return;
+      }
+      const operationId = url.searchParams.get('operationId');
+      if (!intake || operationId && !operations.has(operationId)) { await route.fulfill({ status: 404, json: { error: 'No saved scene analysis found yet.' } }); return; }
+      await route.fulfill({ json: state() }); return;
+    }
+    if (request.method() === 'PATCH') {
+      const body = request.postDataJSON();
+      expect(body).toEqual({ action: 'cancel', expectedRevision: intake!.revision });
+      intake = { ...intake!, status: 'cancelled', revision: intake!.revision + 1, result: null, executionBudget: cancelExecutionBudget(intake!.executionBudget) };
+      await route.fulfill({ json: state() }); return;
+    }
+    const form = await new Response(new Uint8Array(request.postDataBuffer()!), { headers: { 'Content-Type': request.headers()['content-type'] } }).formData();
+    const file = form.get('file') as File, bytes = Buffer.from(await file.arrayBuffer());
+    expect(file.type).toBe('image/jpeg'); expect(file.size).toBeLessThanOrEqual(300 * 1024);
+    const previous = intake;
+    const operationId = String(form.get('operationId'));
+    posts.push({ goal: String(form.get('goal')), context: String(form.get('context')), source: String(form.get('source')), capturedAt: String(form.get('capturedAt')),
+      operationId, intakeId: form.get('intakeId') as string | null, expectedRevision: form.has('expectedRevision') ? Number(form.get('expectedRevision')) : null });
+    if (rejectNextStatus !== null) { const status = rejectNextStatus; rejectNextStatus = null; await route.fulfill({ status, json: { error: 'The saved scene revision changed before this analysis could start.' } }); return; }
+    if (previous) { expect(form.get('intakeId')).toBe(previous.id); expect(Number(form.get('expectedRevision'))).toBe(previous.revision); }
+    sequence++;
+    const frameId = `scene-frame-${sequence}`, sha256 = createHash('sha256').update(bytes).digest('hex');
+    images.set(frameId, bytes);
+    let budget = previous?.executionBudget || createExecutionBudget('11111111-1111-4111-8111-111111111111', DEFAULT_CAMERA_EXECUTION_LIMITS);
+    budget = reserveInvocation(budget, { invocationId: `scene-analysis-${sequence}`, parentInvocationId: null, role: 'scene_intake', route: 'camera_reasoning', model: 'muse-spark-1.3',
+      contextHash: createHash('sha256').update(bytes).digest('hex'), promptVersion: 'offline-scene-prompt', schemaVersion: 'camera-intake-v1', toolVersion: 'none', maxOutputTokens: 2000, inputBytes: bytes.length }).state;
+    const keepPending = pendingNext; pendingNext = false;
+    if (!keepPending) budget = recordInvocationResponse(budget, `scene-analysis-${sequence}`, `offline-scene-response-${sequence}`, { input_tokens: 3, output_tokens: 2, total_tokens: 5 });
+    const workflowId = responseKind === 'unsupported' ? null : 'harness_routing';
+    intake = { id: '11111111-1111-4111-8111-111111111111', revision: sequence * 2, status: 'completed', goal: String(form.get('goal')), context: String(form.get('context')),
+      frame: { id: frameId, url: `/api/camera/intakes/11111111-1111-4111-8111-111111111111/frames/${frameId}`, sha256,
+        source: form.get('source') as 'camera' | 'upload', capturedAt: form.get('capturedAt') ? String(form.get('capturedAt')) : null, receivedAt: new Date().toISOString(), width: 960, height: 640 },
+      result: { summary: 'Offline scene fixture: labelled sensor branches and destination map are visible. No physical result is established.', frameQuality: 'clear', workflowId,
+        workflowReason: workflowId ? 'The shown labels and branches match the supported bench routing workflow.' : 'This scene does not establish a supported physical workflow.',
+        workflowEvidenceObservationIds: ['labels'], observations: [{ id: 'labels', label: 'Visible branch labels', detail: 'Synthetic labels A, B and P1, P2 are readable in this browser fixture.', box: { x: .1, y: .2, width: .7, height: .5 } }], unknowns: ['The permitted handling and actual cable specification remain unknown.'],
+        viewRequest: responseKind === 'view' ? { instruction: 'Expose the labels in one clear view.', whyNeeded: 'The current label map remains occluded.', targetObservationIds: ['labels'] } : null,
+        factDrafts: workflowId ? [{ id: `draft-map-${sequence}`, factKey: 'target_port_map', value: 'A → P1; B → P2, via the labelled bench anchors.', evidenceObservationIds: ['labels'], frameId, frameSha256: sha256, workflowId },
+          { id: `draft-labels-${sequence}`, factKey: 'branch_labels', value: 'Actual labels shown: A, B, P1, P2.', evidenceObservationIds: ['labels'], frameId, frameSha256: sha256, workflowId }] : [] }, error: null, adoptedSessionId: null, executionBudget: budget };
+    operations.set(operationId, intake.id);
+    if (keepPending) { intake.status = 'pending'; intake.result = null; }
+    if (loseNextResponse) { loseNextResponse = false; await route.abort('failed'); return; }
+    await route.fulfill({ json: state() });
+  });
+  return { browserFixture, posts, gets, get intake() { return intake!; },
+    chooseNext(kind: typeof responseKind) { responseKind = kind; }, loseNextResponse() { loseNextResponse = true; }, pendingNext() { pendingNext = true; },
+    loseNextAdoptionResponse() { loseAdoptionResponse = true; },
+    rejectNext(status: number) { rejectNextStatus = status; },
+    advanceRevision() { intake = { ...intake!, revision: intake!.revision + 1 }; },
+    lateCancelledResponse() { intake!.executionBudget = recordInvocationResponse(intake!.executionBudget, `scene-analysis-${sequence}`, `offline-scene-response-${sequence}`, { total_tokens: 5 }); } };
+}
+
 async function startWorkflow(page: Page, id = cameraWorkflows[0].id, unknownFactIds: string[] = []) {
   const workflow = cameraWorkflow(id)!;
   await page.goto('/camera');
-  await expect(page.getByRole('heading', { name: 'Give the next action a clear view.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Show the setup. Tell me the goal.' })).toBeVisible();
+  await page.getByText('Choose a different starting point', { exact: true }).click();
+  await page.getByRole('button', { name: 'Choose workflow manually', exact: true }).click();
   await expect(page.getByLabel('Camera workflows').getByRole('button')).toHaveCount(5);
   await page.getByRole('button').filter({ hasText: workflow.title }).click();
   for (const fact of workflow.requiredFacts) {
@@ -273,6 +364,297 @@ async function startWorkflow(page: Page, id = cameraWorkflows[0].id, unknownFact
   await page.getByRole('button', { name: 'Start this workflow', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Start camera', exact: true })).toBeVisible();
 }
+
+async function sceneGoal(page: Page, context = '') {
+  await page.getByRole('textbox', { name: 'What would you like to do?', exact: true }).fill('Route these labelled prototype sensor branches to the shown destinations.');
+  if (context) {
+    await page.getByText('Anything to keep in mind? (optional)', { exact: true }).click();
+    await page.getByLabel('Constraints or context', { exact: true }).fill(context);
+  }
+}
+
+test('camera opens first and the selected scene supplies reviewable drafts before one-at-a-time prerequisites', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    const original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    (window as unknown as { sceneCameraStarts: number }).sceneCameraStarts = 0;
+    navigator.mediaDevices.getUserMedia = async constraints => { (window as unknown as { sceneCameraStarts: number }).sceneCameraStarts++; return original(constraints); };
+  });
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera');
+  await expect(page.getByRole('heading', { name: 'Show the setup. Tell me the goal.' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Stop camera', exact: true })).toBeVisible();
+  await expect.poll(() => page.getByLabel('Local camera preview').evaluate(video => (video as HTMLVideoElement).videoWidth)).toBeGreaterThan(0);
+  await expect(page.getByRole('region', { name: 'Confirm workflow facts' })).toHaveCount(0);
+  await expect(page.getByLabel('Camera workflows')).toHaveCount(0);
+  expect(await page.locator('textarea:visible, input[type="text"]:visible').count()).toBe(1);
+  expect(fixture.posts).toHaveLength(0);
+  await page.screenshot({ path: '/tmp/countershot-camera-first-mobile-entry.png' });
+  await page.setViewportSize({ width: 1366, height: 940 });
+  await page.screenshot({ path: '/tmp/countershot-camera-first-desktop-entry.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await sceneGoal(page, 'Use one hand and removable bench clips only.');
+  expect(await page.locator('textarea:visible, input[type="text"]:visible').count()).toBe(2);
+  expect(fixture.posts).toHaveLength(0);
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Scene analysis result' })).toContainText('labelled sensor branches');
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  expect(fixture.posts).toHaveLength(1);
+  expect(fixture.posts[0]).toMatchObject({ source: 'camera', context: 'Use one hand and removable bench clips only.' });
+  expect(fixture.posts[0].capturedAt).toMatch(/^\d{4}-/);
+  await page.getByRole('button', { name: 'Use this workflow', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Next setup detail' })).toContainText('disconnected, unpowered bench harness');
+  expect(fixture.browserFixture.session.facts).toEqual({});
+  expect(fixture.browserFixture.session.executionBudget?.invocations).toHaveLength(1);
+  expect(fixture.browserFixture.framePosts).toHaveLength(0);
+  await expect(page.getByText('Your physical verification', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Inspect this setup', exact: true })).toBeDisabled();
+  expect(await page.evaluate(() => (window as unknown as { sceneCameraStarts: number }).sceneCameraStarts)).toBe(1);
+  expect(await page.getByLabel('Local camera preview').evaluate(video => !!(video as HTMLVideoElement).srcObject)).toBe(true);
+  const detail = page.getByRole('region', { name: 'Next setup detail' });
+  await detail.getByLabel('I confirm this is true for the actual setup.', { exact: true }).check();
+  await detail.getByRole('button', { name: 'Confirm this scope', exact: true }).click();
+  await expect(detail).toContainText('branch-to-port map');
+  await expect(detail.getByRole('button', { name: 'Confirm this detail', exact: true })).toBeEnabled();
+  await detail.getByRole('button', { name: 'Confirm this detail', exact: true }).click();
+  await expect(detail).toContainText('Actual labels on the trunk');
+  await detail.getByRole('button', { name: 'Confirm this detail', exact: true }).click();
+  await expect(detail).toContainText('Available hands');
+  await detail.getByRole('button', { name: 'Use the constraints I entered', exact: true }).click();
+  await expect(detail).toHaveCount(0);
+  await expect(page.getByText('Your physical verification', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inspect this setup', exact: true })).toBeEnabled();
+  expect(fixture.browserFixture.session.facts).toMatchObject({ scope_confirmed: true, target_port_map: fixture.intake.result!.factDrafts[0].value,
+    branch_labels: fixture.intake.result!.factDrafts[1].value, operator_constraints: 'Use one hand and removable bench clips only.' });
+  expect(fixture.browserFixture.session.facts.minimum_bend_radius_mm).toBeUndefined();
+  expect(fixture.browserFixture.session.facts.retention_method).toBeUndefined();
+  expect(fixture.browserFixture.patches.filter(patch => patch.action === 'prerequisite')).toHaveLength(4);
+  expect(fixture.browserFixture.patches.filter(patch => patch.intakeDraftId)).toHaveLength(2);
+  expect(fixture.posts).toHaveLength(1); expect(fixture.browserFixture.framePosts).toHaveLength(0);
+  await page.getByRole('button', { name: 'Stop camera', exact: true }).click();
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => (window as unknown as { sceneCameraStarts: number }).sceneCameraStarts)).toBe(1);
+  await page.setViewportSize({ width: 320, height: 740 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1366, height: 940 });
+  await page.screenshot({ path: '/tmp/countershot-camera-first-desktop-session.png' });
+});
+
+test('denied camera permission keeps an explicit photo fallback without starting analysis automatically', async ({ page }) => {
+  await page.addInitScript(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('Offline denied camera fixture', 'NotAllowedError'); }; });
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera');
+  await expect(page.getByRole('alert').filter({ hasText: 'Camera permission was not granted' })).toBeVisible();
+  await sceneGoal(page);
+  await page.getByLabel('Choose scene photo', { exact: true }).setInputFiles(await syntheticBench(page, false, 'First scene, uploaded explicitly'));
+  expect(fixture.posts).toHaveLength(0);
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  expect(fixture.posts).toHaveLength(1);
+  expect(fixture.posts[0]).toMatchObject({ source: 'upload', capturedAt: '' });
+});
+
+test('switching back to the camera cancels a slow photo read without leaving scene controls locked', async ({ page }) => {
+  await page.addInitScript(() => {
+    const decode = HTMLImageElement.prototype.decode;
+    HTMLImageElement.prototype.decode = function () {
+      const state = window as unknown as { holdPhotoDecode?: boolean; photoDecodeEntered?: boolean; releasePhotoDecode?: () => void };
+      if (state.holdPhotoDecode && this.src.startsWith('blob:')) {
+        state.photoDecodeEntered = true;
+        return new Promise<void>((resolve, reject) => { state.releasePhotoDecode = () => { void decode.call(this).then(resolve, reject); }; });
+      }
+      return decode.call(this);
+    };
+  });
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera'); await sceneGoal(page);
+  await page.getByLabel('Choose scene photo', { exact: true }).setInputFiles(await syntheticBench(page, false, 'First selected image'));
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.evaluate(() => { (window as unknown as { holdPhotoDecode: boolean }).holdPhotoDecode = true; });
+  await page.getByLabel('Choose scene photo', { exact: true }).setInputFiles(await syntheticBench(page, true, 'Slow second selected image'));
+  await expect.poll(() => page.evaluate(() => (window as unknown as { photoDecodeEntered: boolean }).photoDecodeEntered)).toBe(true);
+  await page.getByRole('button', { name: 'Use camera instead', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Stop camera', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.evaluate(() => { (window as unknown as { releasePhotoDecode: () => void }).releasePhotoDecode(); });
+  await expect(page.getByAltText('Selected scene photo, not yet sent for analysis')).toHaveCount(0);
+  await expect(page.getByLabel('Choose scene photo', { exact: true })).toBeEnabled();
+  expect(fixture.posts).toHaveLength(0);
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  expect(fixture.posts).toHaveLength(1); expect(fixture.posts[0].source).toBe('camera');
+});
+
+test('unsupported scenes remain outside a workflow and retakes retain the same three-analysis allowance', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page); fixture.chooseNext('unsupported');
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'No supported workflow matches this scene.' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toHaveCount(0);
+  const originalId = fixture.intake.id;
+  fixture.chooseNext('view');
+  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+  await expect(page.getByText('Expose the labels in one clear view.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
+  fixture.chooseNext('supported');
+  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toBeDisabled();
+  expect(fixture.posts).toHaveLength(3);
+  expect(fixture.posts.slice(1).every(post => post.intakeId === originalId && post.expectedRevision !== null)).toBe(true);
+  expect(fixture.intake.executionBudget.invocations).toHaveLength(3);
+  await page.getByRole('button', { name: 'Use this workflow', exact: true }).click();
+  expect(fixture.browserFixture.session.executionBudget?.invocations).toHaveLength(3);
+});
+
+test('a lost scene response is recovered by GET without another paid scene request', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page); fixture.loseNextResponse();
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'analysis result is uncertain' })).toBeVisible();
+  expect(fixture.posts).toHaveLength(1);
+  await page.getByRole('button', { name: 'Refresh saved analysis', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  expect(fixture.posts).toHaveLength(1);
+  expect(fixture.intake.executionBudget.invocations).toHaveLength(1);
+});
+
+test('a stale scene revision refreshes its known record without looking up an unregistered paid operation', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  fixture.advanceRevision(); fixture.rejectNext(409);
+  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'scene changed in another request' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Refresh saved analysis', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  expect(fixture.gets.at(-1)).toBe(`/api/camera/intakes/${fixture.intake.id}`);
+  expect(fixture.gets.some(path => path.includes('operationId='))).toBe(false);
+  expect(fixture.posts).toHaveLength(2); expect(fixture.intake.executionBudget.invocations).toHaveLength(1);
+});
+
+test('a saved adopted workflow can be continued after a lost adoption response without repeating analysis or creation', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  fixture.loseNextAdoptionResponse();
+  await page.getByRole('button', { name: 'Use this workflow', exact: true }).click();
+  await expect.poll(() => fixture.browserFixture.sessionCreates).toBe(1);
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  await page.route('**/api/camera/intakes/*/frames/*', route => route.fulfill({ status: 409, json: { error: 'Historical scene image integrity fixture.' } }));
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Continue saved workflow', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Continue saved workflow', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Next setup detail' })).toBeVisible();
+  expect(fixture.browserFixture.sessionCreates).toBe(1);
+  expect(fixture.posts).toHaveLength(1); expect(fixture.browserFixture.framePosts).toHaveLength(0);
+  expect(fixture.browserFixture.session.executionBudget?.invocations).toHaveLength(1);
+});
+
+test('a reset keeps one-question setup while earlier-scene visual drafts remain unavailable', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Use this workflow', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Next setup detail' })).toBeVisible();
+  fixture.browserFixture.resetNativeFacts();
+  await page.getByRole('button', { name: 'Refresh session', exact: true }).click();
+  expect(fixture.browserFixture.session.sceneEpoch).toBe(2);
+  await expect(page.getByRole('group', { name: 'Saved scene context' })).toHaveCount(0);
+  const detail = page.getByRole('region', { name: 'Next setup detail' });
+  await detail.getByLabel('I confirm this is true for the actual setup.', { exact: true }).check();
+  await detail.getByRole('button', { name: 'Confirm this scope', exact: true }).click();
+  await expect(detail.getByRole('textbox', { name: 'Your confirmed detail', exact: true })).toBeVisible();
+  await expect(detail.getByRole('button', { name: 'Confirm this detail', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Confirm workflow facts' })).toHaveCount(0);
+  expect(fixture.posts).toHaveLength(1); expect(fixture.browserFixture.framePosts).toHaveLength(0);
+});
+
+test('changed scene details and a newly analysed image must be checked before workflow adoption', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  const firstFrame = fixture.intake.frame!.id;
+  await page.getByRole('textbox', { name: 'What would you like to do?', exact: true }).fill('Inspect the new labelled route in this changed scene.');
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
+  let release!: () => void, entered!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; }), requested = new Promise<void>(resolve => { entered = resolve; });
+  await page.route('**/api/camera/intakes/*/frames/*', async route => {
+    if (new URL(route.request().url()).pathname.endsWith(firstFrame)) { await route.fallback(); return; }
+    entered(); await held; await route.fallback();
+  });
+  try {
+    await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+    await requested;
+    expect(fixture.intake.frame!.id).not.toBe(firstFrame);
+    await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
+    release();
+    await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+    expect(fixture.posts).toHaveLength(2);
+  } finally { release(); }
+});
+
+test('a pending saved scene can be cancelled and late paid usage cannot restore a workflow proposal', async ({ page }) => {
+  const fixture = await nativeSceneFixture(page); fixture.pendingNext();
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Cancel saved analysis', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Cancel saved analysis', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'scene analysis was cancelled' })).toBeVisible();
+  fixture.lateCancelledResponse();
+  await page.getByRole('button', { name: 'Refresh saved analysis', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toBeDisabled();
+  expect(fixture.posts).toHaveLength(1);
+  expect(fixture.intake.executionBudget.invocations[0].responseId).toBe('offline-scene-response-1');
+});
+
+test('a locked camera workspace does not request device permission before access is granted', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    (window as unknown as { privateCameraStarts: number }).privateCameraStarts = 0;
+    navigator.mediaDevices.getUserMedia = async constraints => { (window as unknown as { privateCameraStarts: number }).privateCameraStarts++; return original(constraints); };
+  });
+  const fixture = await nativeSceneFixture(page);
+  let locked = true;
+  await page.route('**/api/camera/sessions', async route => locked ? route.fulfill({ status: 401, json: { error: 'Offline workspace is locked.' } }) : route.fallback());
+  await page.route('**/api/session', async route => { locked = false; await route.fulfill({ json: { ok: true } }); });
+  await page.goto('/camera');
+  await expect(page.getByRole('heading', { name: 'Open your camera workspace.' })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { privateCameraStarts: number }).privateCameraStarts)).toBe(0);
+  await page.getByLabel('Workspace access code', { exact: true }).fill('offline-browser-access-fixture');
+  await page.getByRole('button', { name: 'Open workspace', exact: false }).click();
+  await expect(page.getByRole('button', { name: 'Stop camera', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { privateCameraStarts: number }).privateCameraStarts)).toBe(1);
+  expect(fixture.posts).toHaveLength(0);
+});
+
+test('an older backend still opens local preview and offers manual setup without calling an unsupported intake endpoint', async ({ page }) => {
+  const fixture = await cameraFixture(page);
+  let unexpectedPosts = 0;
+  await page.route('**/api/camera/intakes**', async route => { unexpectedPosts++; await route.fulfill({ status: 404, json: { error: 'Old backend fixture.' } }); });
+  await page.goto('/camera');
+  await expect(page.getByRole('button', { name: 'Stop camera', exact: true })).toBeVisible();
+  await sceneGoal(page);
+  await expect(page.getByRole('status').filter({ hasText: 'Scene understanding is being updated' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeDisabled();
+  expect(unexpectedPosts).toBe(0); expect(fixture.framePosts).toHaveLength(0);
+  await page.getByText('Choose a different starting point', { exact: true }).click();
+  await page.getByRole('button', { name: 'Choose workflow manually', exact: true }).click();
+  await expect(page.getByLabel('Camera workflows').getByRole('button')).toHaveCount(5);
+});
 
 test('phone checkpoint loop preserves unknown readings and records a failed measured attempt without advancing', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

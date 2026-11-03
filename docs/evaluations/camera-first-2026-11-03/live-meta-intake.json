@@ -1,0 +1,102 @@
+{
+  "executedAt": "2026-11-03T13:26:56.257Z",
+  "source": "docs/examples/camera-harness_routing.png",
+  "synthetic": true,
+  "physicalPerformanceVerified": false,
+  "deployedVercelRenderTransportVerified": false,
+  "frameSha256": "9772b435d24b023b62ade255c8dc95cbae15cab11e6e4845b830b786e5a68504",
+  "model": "muse-spark-1.3",
+  "providerResponseId": "resp_6ae9e11f233a759427624754",
+  "latencyMs": 11726,
+  "usage": [
+    {
+      "input_tokens": 2944,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1206,
+      "output_tokens_details": {
+        "reasoning_tokens": 691
+      },
+      "total_tokens": 4150
+    }
+  ],
+  "workflowId": "harness_routing",
+  "frameQuality": "clear",
+  "summary": "Rendered synthetic harness diagram with TRUNK, anchors L-M-R, ports P1-P3, and a TARGET mapping line. No physical harness visible.",
+  "workflowReason": "Scene shows labelled trunk, branches, anchors, ports, and written TARGET map matching harness_routing reference for a bench mock-up, per synthetic-only context.",
+  "observations": [
+    {
+      "id": "obs_title",
+      "label": "Synthetic fixture header",
+      "detail": "Top header reads SYNTHETIC SOFTWARE FIXTURE / harness_routing and Rendered diagram, NOT a photographed or physically tested operation",
+      "box": {
+        "x": 0.02,
+        "y": 0.03,
+        "width": 0.6,
+        "height": 0.08
+      }
+    },
+    {
+      "id": "obs_trunk",
+      "label": "TRUNK and L-M-R anchors",
+      "detail": "Left TRUNK box connected to three middle anchor boxes labeled L, M, R via colored lines",
+      "box": {
+        "x": 0.12,
+        "y": 0.3,
+        "width": 0.32,
+        "height": 0.42
+      }
+    },
+    {
+      "id": "obs_ports",
+      "label": "Branch lines and P1-P3 ports",
+      "detail": "Right side shows P1, P2, P3 boxes with colored lines labeled BRANCH B, BRANCH A, BRANCH C",
+      "box": {
+        "x": 0.34,
+        "y": 0.25,
+        "width": 0.55,
+        "height": 0.42
+      }
+    },
+    {
+      "id": "obs_target",
+      "label": "TARGET mapping text",
+      "detail": "Bottom text reads TARGET: A-L-P1; B-M-P2; C-R-P3",
+      "box": {
+        "x": 0.23,
+        "y": 0.8,
+        "width": 0.5,
+        "height": 0.08
+      }
+    }
+  ],
+  "unknowns": [
+    "No physical bench mock-up, measurements, power state, or fit is visible",
+    "Rendered branch colors/routes vs TARGET text apparent pairing is unconfirmed",
+    "Physical scope, specifications, and operator consent for bench work are unknown"
+  ],
+  "viewRequest": null,
+  "factDrafts": [
+    {
+      "factKey": "target_port_map",
+      "value": "TARGET: A-L-P1; B-M-P2; C-R-P3",
+      "evidenceObservationIds": [
+        "obs_target"
+      ]
+    },
+    {
+      "factKey": "branch_labels",
+      "value": "Trunk: TRUNK; anchors: L, M, R; ports: P1, P2, P3; branches labeled BRANCH A, BRANCH B, BRANCH C",
+      "evidenceObservationIds": [
+        "obs_trunk",
+        "obs_ports"
+      ]
+    }
+  ],
+  "invariants": {
+    "oneReservedModelRequest": true,
+    "noSessionAutomaticallyCreated": true,
+    "noFactsAutomaticallyConfirmed": true
+  }
+}

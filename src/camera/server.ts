@@ -14,7 +14,7 @@ import { cameraWorkflow, cameraWorkflows } from './workflows';
 import { applyCameraAssessment, CameraDomainError, confirmCameraStep, createCameraSession, refreshCameraGuidance, recordCameraStepReview,
   reviseCameraSession, undoLastCameraStep, answerCameraMeasurementRequest, cancelCameraEvidenceRequest,
   openCameraEvidenceRequest, registerCameraEvidenceRequest, CAMERA_REQUEST_HISTORY_LIMIT } from './engine';
-import { initializeCameraReasoning, cameraReasoningVersion, bindCameraEntity, acceptCameraPlanChange, recordCameraReadingReport } from './engine';
+import { initializeCameraReasoning, cameraReasoningVersion, bindCameraEntity, acceptCameraPlanChange, recordCameraReadingReport, confirmCameraPrerequisite } from './engine';
 import { CAMERA_ENGINE_VERSION, CAMERA_SCHEMA_VERSION, CameraAssessmentSchema, cameraTurnDecisionIds, isCameraDecisionAssessment,
   type StoredCameraAssessment, type CameraSession, type CameraTurn, type WorkflowDefinition, type CameraEvidenceRequest,
   type CameraEvidenceAnswer, type CameraRequestChecksVersion } from './schema';
@@ -22,15 +22,23 @@ import { assertCameraStill } from './frame-media';
 import { executionForCamera, assertCameraExecutionCurrent, type CameraExecutionScope } from './execution';
 import { createOwnedEvidenceResolver, publicEvidenceCatalog, type OwnedEvidenceFrame } from './evidence';
 import { assertExecutionCanContinue, remainingExecutionBudget } from '../meta/budget';
+import { adoptCameraIntake, publicCameraIntakeForSession, cameraIntakeDraftForSession, pendingCameraIntakeCount } from './intake';
 
 const run = promisify(execFile);
 const MAX_FRAME_BYTES = 300 * 1024;
 const MAX_TURNS = 20;
 const PENDING_MS = 5 * 60_000;
 const factsSchema = z.record(z.string(), z.union([z.string().max(3000), z.number().finite(), z.boolean()]));
-const createSchema = z.object({ workflowId: z.string().max(100), facts: factsSchema }).strict();
+const createSchema = z.object({ workflowId: z.string().max(100), facts: factsSchema,
+  intakeId: z.string().uuid().optional(), intakeRevision: z.number().int().positive().optional() }).strict().superRefine((value, context) => {
+  if ((value.intakeId === undefined) !== (value.intakeRevision === undefined))
+    context.addIssue({ code: 'custom', path: ['intakeId'], message: 'Scene adoption needs its exact intake identity and revision.' });
+});
 const patchSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('facts'), expectedRevision: z.number().int().positive(), facts: factsSchema }).strict(),
+  z.object({ action: z.literal('prerequisite'), expectedRevision: z.number().int().positive(), factKey: z.string().min(1).max(100),
+    value: z.union([z.string().max(3000), z.number().finite(), z.boolean()]), unit: z.string().max(100).nullable().optional(),
+    operatorConfirmed: z.literal(true), clientOperationId: z.string().uuid(), intakeDraftId: z.string().min(1).max(200).optional() }).strict(),
   z.object({ action: z.literal('confirm'), expectedRevision: z.number().int().positive(), turnId: z.string().uuid(),
     confirmations: z.record(z.string(), z.boolean()), measurements: z.record(z.string(), z.number().finite().nullable()).optional(), notes: z.string().max(3000) }).strict(),
   z.object({ action: z.literal('review'), expectedRevision: z.number().int().positive(), turnId: z.string().uuid(),
@@ -274,39 +282,82 @@ export function cameraState(req: NextRequest, sessionId: string) {
     return currentChecks(saved) ? expirePending(saved) : saved;
   });
   return { session: publicSession(session), workflow: workflowFor(session),
+    intake: session.sceneEpoch === 1 && session.setupContext?.intakeId === session.id
+      ? publicCameraIntakeForSession(session.id, req.cookies.get('countershot_session')?.value || '') : null,
     historicalWorkflow: !currentChecks(session) ? session.workflowSpec?.definition || null : null,
     turns: list<StoredCameraTurn>('camera_turns', sessionId).map(publicTurn),
     frames: list<StoredCameraFrame>('camera_frames', sessionId).map(publicFrame),
-    audit: list('camera_audit', sessionId), meta: metaStatus(), limits: { maxTurns: MAX_TURNS, maxFrameBytes: MAX_FRAME_BYTES }, serverNow: now() };
+    audit: list('camera_audit', sessionId), meta: metaStatus(), capabilities: { sceneIntake: true, progressivePrerequisites: true },
+    limits: { maxTurns: MAX_TURNS, maxFrameBytes: MAX_FRAME_BYTES }, serverNow: now() };
 }
 export function cameraSessions(req: NextRequest) {
   const owner = ownerHash(req);
   const sessions = owner ? transaction(() => list<StoredCameraSession>('camera_sessions')
     .filter(session => session.ownerHash === owner).map(session => publicSession(currentChecks(session) ? expirePending(session) : session))) : [];
-  return { sessions, workflows: cameraWorkflows, meta: metaStatus(), limits: { maxTurns: MAX_TURNS, maxFrameBytes: MAX_FRAME_BYTES }, serverNow: now() };
+  return { sessions, workflows: cameraWorkflows, meta: metaStatus(), capabilities: { sceneIntake: true, progressivePrerequisites: true },
+    limits: { maxTurns: MAX_TURNS, maxFrameBytes: MAX_FRAME_BYTES }, serverNow: now() };
 }
 export function createOwnedCameraSession(body: unknown, browserSession: string) {
   const parsed = createSchema.parse(body);
   const workflow = cameraWorkflow(parsed.workflowId);
   if (!workflow) fail(400, 'Choose one of the supported camera workflows.');
-  return transaction(() => {
+  const create = (sessionId: string, budget?: CameraSession['executionBudget'], setupContext?: CameraSession['setupContext']) => {
     const owner = bytesHash(browserSession);
-    if (list<StoredCameraSession>('camera_sessions').filter(session => session.ownerHash === owner).length >= 30)
-      fail(429, 'This browser has reached the 30-session camera prototype limit.');
-    const sessionId = id();
+    const runs = [...list<StoredCameraSession>('camera_sessions'), ...list<{ id: string; ownerHash: string }>('camera_intakes')]
+      .filter(record => record.ownerHash === owner);
+    const identities = new Set(runs.map(record => record.id));
+    if (!identities.has(sessionId) && identities.size >= 30) fail(429, 'This browser has reached the 30-run camera prototype limit.');
     const base = domainCall(() => createCameraSession(workflow, parsed.facts, now()));
     const domain = domainCall(() => initializeCameraReasoning(base, workflow, { runId: sessionId, factsHash: hash(base.facts) }));
     const session = insert<StoredCameraSession>('camera_sessions', { ...domain, id: sessionId, projectId: sessionId, ownerHash: owner, activeTurnId: null,
-      workflowSpec: currentWorkflowSpec(workflow) });
-    audit(sessionId, 'camera_session_created', sessionId, 'Operator-confirmed facts. No physical completion is inferred.');
+      workflowSpec: currentWorkflowSpec(workflow), ...(budget ? { executionBudget: structuredClone(budget) } : {}),
+      ...(setupContext ? { setupContext: structuredClone(setupContext) } : {}) });
+    audit(sessionId, 'camera_session_created', sessionId, setupContext
+      ? 'The operator selected a scene-suggested workflow. Draft observations remain unconfirmed; no action or physical completion is inferred.'
+      : 'Operator-confirmed facts. No physical completion is inferred.');
     return session;
-  });
+  };
+  if (parsed.intakeId) {
+    if (Object.keys(parsed.facts).length) fail(400, 'Scene adoption starts with unknown prerequisites; confirm each relevant detail explicitly.');
+    return adoptCameraIntake({ intakeId: parsed.intakeId, expectedRevision: parsed.intakeRevision!, workflowId: workflow.id, browserSession },
+      info => create(info.id, info.budget, { intakeId: parsed.intakeId!, goal: info.goal, context: info.context }));
+  }
+  return transaction(() => create(id()));
 }
 export function patchCameraSession(req: NextRequest, sessionId: string, body: unknown) {
   authorizeCamera(req, sessionId);
   const parsed = patchSchema.parse(body);
   transaction(() => {
     const saved = get<StoredCameraSession>('camera_sessions', sessionId)!;
+    if (parsed.action === 'prerequisite') {
+      const receiptId = `${sessionId}:${parsed.clientOperationId}`;
+      const { expectedRevision: _revision, clientOperationId: _operation, ...intent } = parsed;
+      const requestHash = hash(intent), receipt = get<{ projectId: string; requestHash: string }>('camera_state_receipts', receiptId);
+      if (receipt) {
+        if (receipt.projectId !== sessionId || receipt.requestHash !== requestHash) fail(409, 'This operation ID belongs to a different saved prerequisite.');
+        return;
+      }
+      requireCurrentChecks(saved);
+      const session = expirePending(saved);
+      if (session.revision !== parsed.expectedRevision || !currentReasoning(session)) fail(409, 'The camera setup changed. Refresh before confirming this prerequisite.');
+      if (session.activeTurnId) fail(409, 'Wait for the current view check before confirming a prerequisite.');
+      const workflow = workflowFor(session), at = now();
+      const draft = parsed.intakeDraftId
+        ? cameraIntakeDraftForSession(sessionId, req.cookies.get('countershot_session')?.value || '', parsed.intakeDraftId) : null;
+      if (parsed.intakeDraftId && (!draft || draft.workflowId !== workflow.id || draft.factKey !== parsed.factKey || draft.value !== parsed.value))
+        fail(409, 'This scene suggestion does not match the owned captured view, workflow or confirmed value.');
+      const admitted = domainCall(() => confirmCameraPrerequisite(domainSession(session), parsed, workflow, at));
+      const updated = domainCall(() => initializeCameraReasoning(admitted, workflow, { runId: sessionId, factsHash: hash(admitted.facts) }));
+      replace('camera_sessions', { ...session, ...updated });
+      insert('camera_state_receipts', { id: receiptId, projectId: sessionId, operationId: parsed.clientOperationId, action: parsed.action,
+        requestHash, inputRevision: session.revision, resultRevision: updated.revision, factKey: parsed.factKey, value: parsed.value,
+        unit: parsed.unit ?? null, operatorConfirmed: true,
+        provenance: draft ? { kind: 'operator_confirmed_scene_draft', intakeId: session.setupContext?.intakeId,
+          draftId: draft.id, frameId: draft.frameId, frameSha256: draft.frameSha256, evidenceObservationIds: draft.evidenceObservationIds }
+          : { kind: 'operator_entered_prerequisite' }, createdAt: at });
+      audit(sessionId, 'camera_prerequisite', parsed.factKey, 'The operator confirmed one previously unknown prerequisite. Completed phases were retained; a fresh view is required.');
+      return;
+    }
     if (parsed.action === 'entity_bind' || parsed.action === 'plan_accept' || parsed.action === 'reading_report') {
       const receiptId = `${sessionId}:${parsed.clientOperationId}`, { expectedRevision: _revision, clientOperationId: _operation, ...intent } = parsed;
       const requestHash = hash(intent), receipt = get<{ projectId: string; requestHash: string }>('camera_state_receipts', receiptId);
@@ -455,7 +506,8 @@ function checkCanStart(session: StoredCameraSession, expectedRevision: number, p
     const pending = candidate.activeTurnId ? get<StoredCameraTurn>('camera_turns', candidate.activeTurnId) : null;
     return pending?.status === 'pending' && Date.now() - Date.parse(pending.createdAt) < PENDING_MS;
   }).length;
-  if (active >= 3) fail(429, 'Three camera checks are already in progress in this browser. Wait for a saved result.');
+  if (active + pendingCameraIntakeCount(session.ownerHash) >= 3)
+    fail(429, 'Three camera checks are already in progress in this browser. Wait for a saved result.');
 }
 
 export async function submitCameraFrame(req: NextRequest, sessionId: string, assessor: CameraAssessor = assessCameraFrame) {
