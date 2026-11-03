@@ -1,6 +1,7 @@
 /**
  * Exercise a configured frontend + persistent API without starting inference.
- * SMOKE_BASE_URL=https://app.example APP_ACCESS_CODE=... node --import tsx scripts/hybrid-smoke.ts
+ * SMOKE_BASE_URL=https://app.example node --import tsx scripts/hybrid-smoke.ts
+ * APP_ACCESS_CODE is needed only if /api/health reports that the optional workspace gate is enabled.
  * Requires ffmpeg locally. Custom CAs belong in NODE_EXTRA_CA_CERTS; TLS verification stays enabled.
  * Creates synthetic records and leaves a private /tmp checkpoint for a restart check.
  */
@@ -25,7 +26,6 @@ function httpsOrigin(value: string | undefined, label: string) {
   return url.origin;
 }
 const base = httpsOrigin(process.env.SMOKE_BASE_URL, 'SMOKE_BASE_URL');
-requireCheck(process.env.APP_ACCESS_CODE, 'Set APP_ACCESS_CODE for the protected smoke session.');
 const expectedApi = process.env.SMOKE_API_ORIGIN ? httpsOrigin(process.env.SMOKE_API_ORIGIN, 'SMOKE_API_ORIGIN') : null;
 const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 const cookieHeader = () => [...cookieJar.entries()].map(([name, value]) => `${name}=${value}`).join('; ');
@@ -79,8 +79,18 @@ async function directRequest(upload: Ticket, body: BodyInit, origin = base, url 
 
 const fixtureRoot = await mkdtemp(path.join(os.tmpdir(), 'countershot-hybrid-media-'));
 try {
-  await ownedJson('/api/session', { accessCode: process.env.APP_ACCESS_CODE });
-  requireCheck(cookieJar.has('countershot_access'), 'Login did not retain the application access cookie.');
+  const health = await ownedJson('/api/health');
+  requireCheck(health?.status === 'ok' && typeof health.accessCodeRequired === 'boolean', 'Health did not report the backend access mode.');
+  const accessCodeRequired: boolean = health.accessCodeRequired;
+  if (accessCodeRequired) {
+    requireCheck(process.env.APP_ACCESS_CODE, 'This backend enables the workspace gate. Set APP_ACCESS_CODE for its smoke session.');
+    await ownedJson('/api/session', { accessCode: process.env.APP_ACCESS_CODE });
+    requireCheck(cookieJar.has('countershot_access'), 'Login did not retain the application access cookie.');
+    checks.push('optional workspace gate login and access cookie retained');
+  } else {
+    requireCheck(health.accessGranted === true, 'The public backend did not grant direct entry.');
+    checks.push('public entry requires no workspace code');
+  }
   const created = await ownedJson('/api/projects', {
     title: 'Synthetic HTTPS hybrid smoke', workflow: 'workshop_jig', demo: true,
     goal: 'Synthetic transport verification only: preserve original phone footage and a private compatible copy. No inference or physical assembly is performed.',
@@ -88,19 +98,23 @@ try {
   });
   const projectId: string = created.project?.id;
   requireCheck(typeof projectId === 'string' && projectId.length > 0 && created.project.isDemo === true, 'A synthetic owned workshop project was not created.');
-  requireCheck(cookieJar.has('countershot_session') && cookieJar.has('countershot_access'), 'Creating a project lost one of the two session cookies.');
-  checks.push('access-code login and both cookies retained', 'synthetic owned project created');
+  requireCheck(cookieJar.has('countershot_session') && (!accessCodeRequired || cookieJar.has('countershot_access')), 'Creating a project lost a required browser cookie.');
+  checks.push('private browser ownership cookie retained', 'synthetic owned project created');
+  const foreignCookies = [
+    ...(accessCodeRequired ? [`countershot_access=${cookieJar.get('countershot_access')!}`] : []),
+    `countershot_session=${randomUUID()}`,
+  ].join('; ');
 
   const unauthorized = await request(`${base}/api/projects/${projectId}/upload-intents`, {
     method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: JSON.stringify({ purpose: 'source' }),
   }, 'Unauthenticated mint denial');
-  requireCheck(unauthorized.status === 401, 'An unauthenticated browser could mint an upload capability.');
+  requireCheck(unauthorized.status === (accessCodeRequired ? 401 : 404), 'A browser without session cookies could mint an upload capability.');
   const noOwner = await request(`${base}/api/projects/${projectId}/upload-intents`, {
-    method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json', Cookie: `countershot_access=${cookieJar.get('countershot_access')!}` },
+    method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json', Cookie: foreignCookies },
     body: JSON.stringify({ purpose: 'source' }),
-  }, 'Unowned mint denial');
-  requireCheck(noOwner.status === 404, 'Application access without project ownership could mint an upload capability.');
-  checks.push('mint requires application access and project ownership');
+  }, 'Foreign-browser mint denial');
+  requireCheck(noOwner.status === 404, 'A different browser could mint an upload capability for this project.');
+  checks.push('upload minting requires the owning browser');
 
   const source = path.join(fixtureRoot, 'synthetic-phone.mov');
   await run('ffmpeg', ['-v', 'error', '-nostdin', '-filter_threads', '1', '-f', 'lavfi', '-i', 'testsrc2=size=96x64:rate=20',
@@ -167,12 +181,12 @@ try {
   requireCheck(Buffer.from(await originalResponse.arrayBuffer()).equals(original), 'The downloaded original is not byte-exact.');
   for (const privateRoute of [assetRoute, assetRoute + '?original=1']) {
     const outsider = await request(base + privateRoute, {}, 'Private media denial');
-    requireCheck(outsider.status === 401, 'A browser without access cookies could download private media.');
-    const unowned = await request(base + privateRoute, { headers: { Cookie: `countershot_access=${cookieJar.get('countershot_access')!}` } }, 'Unowned media denial');
-    requireCheck(unowned.status === 404, 'Application access without ownership could download private media.');
+    requireCheck(outsider.status === (accessCodeRequired ? 401 : 404), 'A browser without session cookies could download private media.');
+    const unowned = await request(base + privateRoute, { headers: { Cookie: foreignCookies } }, 'Foreign-browser media denial');
+    requireCheck(unowned.status === 404, 'A different browser could download private media.');
   }
   const capabilityGet = await request(apiOrigin + assetRoute, { headers: { Authorization: `Bearer ${upload.token}` } }, 'Upload capability download denial');
-  requireCheck(capabilityGet.status === 401, 'An upload capability granted media download access.');
+  requireCheck(capabilityGet.status === (accessCodeRequired ? 401 : 404), 'An upload capability granted media download access.');
   checks.push('protected frontend canonical MP4 and Range retrieval', 'byte-exact original download through frontend', 'upload capability cannot read private media');
 
   const state = await ownedJson(`/api/projects/${projectId}`);
@@ -187,7 +201,7 @@ try {
     canonicalSha256: asset.sha256, canonicalByteLength: asset.byteLength, synthetic: true, physicalStatus: 'untested', noProviderCalls: true }, null, 2), { mode: 0o600, flag: 'wx' });
   console.log(JSON.stringify({ passed: true, checkedAt: new Date().toISOString(), baseUrl: base, apiOrigin, projectId, assetId: asset.id,
     originalBytes: original.length, canonicalBytes: asset.byteLength, synthetic: true, physicalStatus: 'untested', noProviderCalls: true,
-    checks, checkpointPath }, null, 2));
+    accessCodeRequired, checks, checkpointPath }, null, 2));
 } finally {
   await rm(fixtureRoot, { recursive: true, force: true });
 }

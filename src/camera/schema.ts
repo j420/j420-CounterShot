@@ -202,6 +202,8 @@ export type CameraSession = {
   reasoning?: ReasoningState;
   plan?: CameraPlanState;
   executionBudget?: ExecutionBudget;
+  /** Operator-entered intent from scene intake; never a measured or visually verified fact. */
+  setupContext?: { intakeId: string; goal: string; context: string };
   /** Derived on reads; durable authority remains evidenceRequests. */
   openRequest?: CameraEvidenceRequest | null;
   guidance: CameraGuidance; createdAt: string; updatedAt: string;

@@ -1,0 +1,14 @@
+.capture { margin-top: 14px; min-width: 0; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; gap: 10px; }
+.header strong { font-size: 14px; }
+.header button { min-width: 44px; min-height: 44px; padding: 9px; }
+.view { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-width: 0; background: #17251d; color: #fff; overflow: hidden; border-radius: 12px; aspect-ratio: 4 / 3; }
+.view video, .view img { width: 100%; max-width: 100%; min-width: 0; height: 100%; object-fit: contain; display: block; }
+.view .hidden { display: none; }
+.overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; background: #17251d99; }
+.recording { position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: 30px; padding: 9px 12px; background: #17251de8; color: #ff8b6a; font-size: 12px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.actions button { flex: 1 1 125px; min-height: 46px; justify-content: center; }
+.caption { margin: 10px 0 0; color: #647357; font-size: 12px; line-height: 1.5; }
+.cameraError { max-width: 340px; margin: 20px; font-size: 14px; line-height: 1.6; text-align: center; }
+@media (min-width: 760px) { .view { max-height: 470px; aspect-ratio: 16 / 9; } }

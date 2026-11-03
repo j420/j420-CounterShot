@@ -33,7 +33,8 @@ services:
       - key: MODEL_API_KEY
         sync: false
       - key: APP_ACCESS_CODE
-        generateValue: true
+        # Public demo opens directly; browser cookies still isolate private work.
+        value: ""
       # Bootstrap with BOTH origin settings absent. Once the real Render and
       # stable Vercel URLs are assigned, add APP_PUBLIC_ORIGIN and
       # PUBLIC_API_ORIGIN together in Render's environment settings.

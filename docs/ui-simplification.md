@@ -1,20 +1,20 @@
 # Simpler phone and desktop flow
 
-Updated on 3 November 2026. The home page keeps the camera illustration and three-step diagram: **show the setup → review the guidance → try it and check**. Separate photo and video explanations describe the actual next result.
+Updated on 3 November 2026. The home page offers **Open camera** and **Workshop video**, a compact **show → understand → try & check** diagram, and saved work. Longer explanations are collapsed. Starting a workshop task asks for a goal and a finished outcome; the project title is drafted from the goal.
 
 Step numbering has been removed from the home, camera and workshop flows. Arrows and stage icons communicate the sequence. Measurements, review budgets and exact revision identities retain their meaning.
 
-The camera workbench explains that a selected photo produces a proposed next step, an expected visible change and a stopping cue, or a question when the view is insufficient. Task scope, detailed observations, model information, watch options and checkpoint history are expandable. The next action, unanswered questions, stop condition, freshness and failed-image warnings stay visible. Required facts and physical-review gates remain in place.
+The camera workbench opens the rear preview and asks for one goal, with optional context. After analysis, the exact assessed photo occupies the same stage. An explicit retake restores the live view. The proposed workflow, next missing detail or next action appears in the same workspace. Detailed observations, model information, watch options and history are expandable. Expected change, stop condition and actionable warnings stay visible. Required facts and physical-review gates remain in place.
 
-Workshop upload controls come before the longer explanation. A successful upload says it was saved and points to **Analyze the job**. Uploading alone does not start inference. The short diagram explains the next stages: review actions/holding conflicts and questions, confirm actual measurements, then request construction drawings and an action flow. Video can show movement; a photo cannot establish hidden or unrecorded actions. Trial-video uploads instead point to the person's outcome review.
+Workshop camera buttons open an inline rear preview for photo or video. Captures stay local until explicitly accepted; a failed save retains the capture for retry. Recording duration and bytes are bounded. Permission failures, unsupported recorders and existing files have explicit fallbacks. A successful upload points to **Analyze the job**. Uploading alone starts no inference. Trial recording still requires an uninterrupted video and an actual outcome review.
 
-Recording instructions, file-format help, saved uploads and project details are expandable. On narrow phones, the main navigation uses four equal columns with icons above the labels so every destination stays accessible.
+Recording instructions, file-format help, saved uploads and project details are expandable. Main navigation shows Camera and Projects; Workbench and Evidence appear within a project.
 
 ## Verification
 
-The optimized Next.js build and TypeScript check passed. The 20 browser journeys cover the existing camera/review/history/upload flows, native disclosures, upload success and explicit analysis, including zero analysis requests from an upload alone. The final responsive check covers home, camera setup and workshop upload at 320, 390, 768 and 1440 pixels. This is Chromium layout and interaction evidence; no new Meta requests, real-device trial, deployment or environment publication was performed.
+The current changes passed 40 camera browser journeys and 17 workshop/capture journeys, including real JPEG/MediaRecorder capture from Chromium's synthetic camera, local backend validation, explicit save/analysis, failed-save retry, camera permission races and stream cleanup. A focused check also loaded and played the captured clip. Responsive checks cover narrow phone layouts and confirm that the preview stays inside its panel. See the [camera-first verification record](camera-first-experience.md) for the separate live Meta check and current previews. Real-device and production transport checks remain pending.
 
-## Actual UI previews
+## Earlier UI previews
 
 These screenshots show the running application using isolated local storage and clearly labelled interface/test inputs. They are interface previews, not physical results or live Meta evaluations.
 

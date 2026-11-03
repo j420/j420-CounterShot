@@ -18,6 +18,7 @@ export function useCameraFeed() {
   const generation = useRef(0);
   const pending = useRef<number | null>(null);
   const mounted = useRef(true);
+  const videoGeneration = useRef(0);
   const [active, setActive] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
@@ -31,6 +32,20 @@ export function useCameraFeed() {
     if (videoRef.current) videoRef.current.srcObject = null;
     if (mounted.current) { setActive(false); setStarting(false); }
   }, []);
+
+  /** A scene can become a workflow without losing its already-authorized camera stream. */
+  const attachVideo = useCallback((video: HTMLVideoElement | null) => {
+    const attachment = ++videoGeneration.current;
+    videoRef.current = video;
+    const stream = streamRef.current;
+    if (!video || !stream) return;
+    if (video.srcObject !== stream) video.srcObject = stream;
+    void video.play().catch(() => {
+      if (videoGeneration.current !== attachment || videoRef.current !== video || streamRef.current !== stream) return;
+      stop();
+      if (mounted.current) setError("The preview could not resume. Start the camera again or choose a photo.");
+    });
+  }, [stop]);
 
   useEffect(() => {
     mounted.current = true;
@@ -100,8 +115,10 @@ export function useCameraFeed() {
     } finally { URL.revokeObjectURL(url); }
   }, []);
 
-  return { videoRef, active, starting, error, clearError: () => setError(""), start, stop, capture, readUpload };
+  return { videoRef, attachVideo, active, starting, error, clearError: () => setError(""), start, stop, capture, readUpload };
 }
+
+export type CameraFeed = ReturnType<typeof useCameraFeed>;
 
 /** A small frame budget keeps deliberate checks viable over a phone connection. */
 function jpegFrame(source: CanvasImageSource, width: number, height: number) {

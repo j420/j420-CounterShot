@@ -2,7 +2,7 @@
 
 **Status: the user's Render screenshots show the backend at `https://countershot-api.onrender.com` Live on commit `8613af3`. The Vercel frontend is being configured; its public URL and the deployed phone workflow have not been verified.** The root [Vercel configuration](../vercel.json) supplies this public backend origin to Vercel's build and runtime. Backend secrets remain on Render.
 
-The intended experience is one HTTPS link in the phone browser: create the project, capture/upload media, confirm facts, generate the jig, inspect the build and upload a trial. Keep the same browser profile: the current access code is an application gate, and project ownership uses a browser cookie, not an account that restores projects on another device.
+The intended experience is one HTTPS link in the phone browser: open directly, capture/upload media, confirm facts, generate the jig, inspect the build and upload a trial. The public demo leaves `APP_ACCESS_CODE` empty. Keep the same browser profile: project and camera-session ownership use a private browser cookie, not an account that restores work on another device. A nonempty backend code optionally enables a workspace gate.
 
 ## Why importing the current app is insufficient
 
@@ -19,7 +19,8 @@ The checkout now contains hybrid routing and upload scaffolding. Vercel serves t
 | Vercel frontend | `COUNTERSHOT_BACKEND_ORIGIN=https://countershot-api.onrender.com` | Supplied by both `build.env` and `env` in the root `vercel.json`; targets the `/api/:path*` rewrite. |
 | Persistent backend | `APP_PUBLIC_ORIGIN=https://your-site.vercel.app` | Exact trusted browser origin for the public app. |
 | Persistent backend | `PUBLIC_API_ORIGIN=https://countershot-api.onrender.com` | This backend's public HTTPS origin for direct media uploads. Must match the frontend's backend setting. |
-| Persistent backend | `MODEL_API_KEY`, `APP_ACCESS_CODE` | Meta inference credential and private app access code. Keep both server-side. |
+| Persistent backend | `MODEL_API_KEY` | Meta inference credential. Keep it server-side on Render. |
+| Persistent backend | `APP_ACCESS_CODE=` | Empty for direct public entry; optionally set a private workspace code on the backend. |
 | Persistent backend | `DATA_ROOT=/app/data` | Persistent volume shared by the web process and worker. |
 
 Use the actual stable Vercel production address for `APP_PUBLIC_ORIGIN`. Origins must use HTTPS and contain no credentials, path, query or fragment. An optional trailing slash is normalized. Leave `COUNTERSHOT_BACKEND_ORIGIN` unset on the persistent backend so it handles API requests locally. Both backend origin settings may be absent for local single-host use; a partial hybrid pair fails closed. Add the settings to both backend processes, not only the web process.
@@ -32,23 +33,23 @@ If the dashboard already defines `COUNTERSHOT_BACKEND_ORIGIN`, keep its value co
 
 ### Media and browser sessions
 
-Ordinary API requests, access-code submission and project-session cookies use the Vercel origin and the API rewrite. The configured backend accepts the exact public origin; it does not add a wildcard origin or weaken project ownership.
+Ordinary API requests and browser-session cookies use the Vercel origin and the API rewrite. Optional access-code submission uses that same route. The configured backend accepts the exact public origin; it does not add a wildcard origin or weaken project ownership.
 
 For a large video, the phone first requests a short-lived, project-scoped upload intent through the ordinary API. It then sends the media directly to the returned backend URL with the one-use bearer ticket. This path avoids sending a 50 MiB video through a Vercel Function and does not rely on third-party session cookies. CORS and ticket validation remain restricted to the configured public origin. Local single-host mode uses the original same-origin upload route.
 
-Use the stable production Vercel address for the configured pair. An arbitrary preview address is not automatically trusted by the backend. Keep the same phone browser profile throughout; the access code is not cross-device project sign-in.
+Use the stable production Vercel address for the configured pair. An arbitrary preview address is not automatically trusted by the backend. Keep the same phone browser profile throughout; another browser cannot read its saved work, even when the public app opens without a code.
 
 ### Deployment sequence
 
 1. Import the repository's current `main` branch, including its root `vercel.json`. The application and reviewed deployment fixes have been pushed to `main`.
 2. Provision the persistent backend from this repository's Dockerfile on a host with an attached disk, HTTPS, Node 24 and permission to run ffmpeg. Mount storage at `/app/data`. The image's `npm run start` runs the website and worker together; do not configure an additional worker against a different local disk. Leave the frontend rewrite setting unset there.
-3. Set the backend credentials securely, choose the intended stable Vercel address, and set both exact backend origin settings. The managed development environment's destination-bound Meta secret does not automatically configure this external host.
+3. Set `MODEL_API_KEY` securely, leave `APP_ACCESS_CODE` empty for the public demo, choose the intended stable Vercel address, and set both exact backend origin settings. If the existing Render service generated a workspace code, clear or remove `APP_ACCESS_CODE` under **Environment → Edit**, then **Save & Deploy**. A code-only redeploy does not remove the existing value. The managed development environment's destination-bound Meta secret does not automatically configure this external host.
 4. Import the same branch as a Next.js project in Vercel, using the repository root, Node 24, `npm ci`, `npm run build`, and default output settings. The checked-in `vercel.json` supplies the Render target. Vercel runs the framework deployment; do not use the backend's endless `npm run start` as a Vercel background service.
-5. Verify `/api/health` through the Vercel URL reaches the backend. On a phone, enter the code, create a project, capture/upload a clip, inspect playback and generate an explicitly requested model job. Revisit after a backend process restart to confirm records and files persist. Test unauthorized access and expired/replayed tickets.
+5. Verify `/api/health` through the Vercel URL reaches the backend and reports `accessCodeRequired: false`. On a phone, open directly, capture/upload a clip, inspect playback and generate an explicitly requested model job. Revisit after a backend process restart to confirm records and files persist. Test foreign-browser ownership denial and expired/replayed tickets. If the optional workspace gate is deliberately enabled, expect `accessCodeRequired: true` and enter its code first.
 
 A real deployment must still verify proxy-forwarded host/origin behavior, secure cookies, protected video playback/seeking and exports through the final public URL. The large upload deliberately uses the direct path; no 50 MiB external-rewrite body guarantee is claimed. The Docker image built and ran locally, and a trusted HTTPS two-origin smoke verified a >5 MiB MOV direct upload, authorization, private original/range retrieval and retained data after restart. This used a local frontend proxy with a 4.5 MiB request limit, not a deployed Vercel edge. See the [verification record](verification.md). These checks do not establish actual host behavior or real-device camera compatibility.
 
-After configuring the real HTTPS pair and an access code in secret settings, run `SMOKE_BASE_URL=https://your-site.vercel.app node --env-file-if-exists=.env.local --import tsx scripts/hybrid-smoke.ts`. The script requires local ffmpeg and creates a labelled synthetic project, not an inference job. It writes a private temporary checkpoint for restart checks; never publish that checkpoint because it contains the test session cookies.
+After configuring the real HTTPS pair, run `SMOKE_BASE_URL=https://your-site.vercel.app node --env-file-if-exists=.env.local --import tsx scripts/hybrid-smoke.ts`. The script discovers the access mode from health; only an enabled workspace gate needs `APP_ACCESS_CODE` in that process's environment. Both modes verify private media and foreign-browser ownership denial. The script requires local ffmpeg and creates a labelled synthetic project, not an inference job. It writes a private temporary checkpoint for restart checks; never publish that checkpoint because it contains the test session cookies.
 
 This setup requires both a Vercel account and the selected Render backend. The user has created the Render service; this agent has no hosting-account connection for changing dashboard settings. The screenshots establish service startup, not end-to-end phone, storage-restart or live Meta verification. See [the deployment guide](render-deployment.md) for the initial single-origin bootstrap and subsequent exact two-origin configuration.
 
