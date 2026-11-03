@@ -1,0 +1,319 @@
+{
+  "case": {
+    "id": "hidden_reverse_relationship",
+    "workflowId": "webbing_lacing",
+    "stepId": "inspect_reverse_path",
+    "rule": "request_missing_evidence",
+    "purpose": "before"
+  },
+  "syntheticStageSelection": true,
+  "syntheticPriorHypothesis": false,
+  "realOperatorReports": false,
+  "syntheticOperatorReportsPresent": false,
+  "physicalRecordsCreated": false,
+  "physicalResult": "untested",
+  "originalPredictionId": null,
+  "images": {
+    "current": {
+      "sha256": "ca6aad64d10f17acbbd33016c4edd5b293d9ae380b0ab0d9526b4518016a2427",
+      "byteLength": 46403,
+      "svgSha256": "5f51ef64c4169c13cd055449d945f7579d7932936028fbfcc7b5b918856c27eb"
+    },
+    "previous": null
+  },
+  "input": {
+    "runId": "8a9ccb7e-e867-4986-9829-00449e347fdd",
+    "turnId": "34b4d286-8d31-45d7-bd14-380cfda9c8e1",
+    "workflow": {
+      "id": "webbing_lacing",
+      "iteration": 3,
+      "title": "Thread a reversible webbing closure",
+      "summary": "Follow a labelled front/back slot path, expose hidden routing and recover a twist without restarting the whole assembly.",
+      "physicalScope": "Non-loadbearing instrument-pouch or bench-fixture webbing prototypes with a known slot path. The result carries no load-retention or personal-support rating.",
+      "requiredFacts": [
+        {
+          "id": "scope_confirmed",
+          "label": "This is a non-loadbearing webbing prototype, with no personal-support or secure-load claim.",
+          "kind": "boolean",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "declared_slot_path",
+          "label": "Exact slot order and front/back path from the reference design",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "slot_labels",
+          "label": "Actual labels on every slot and the fixed or free webbing end",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "front_face_marker",
+          "label": "Physical mark identifying the webbing front face and fixture front",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "webbing_width_mm",
+          "label": "Measured webbing width for this prototype",
+          "kind": "number",
+          "unit": "mm",
+          "min": 0.5,
+          "max": 100
+        },
+        {
+          "id": "minimum_tail_length_mm",
+          "label": "Minimum free tail length required by the reference design",
+          "kind": "number",
+          "unit": "mm",
+          "min": 0,
+          "max": 2000
+        },
+        {
+          "id": "operator_constraints",
+          "label": "Permitted threading/pulling actions and available hands or supports",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "steps": [
+        {
+          "id": "identify_lacing",
+          "title": "Identify the path and the two faces",
+          "instruction": "Show the slot labels and face marks. Resolve the entry slot and the next front/back transition before asking the operator to thread anything.",
+          "visibleChecks": [
+            "The active entry slot label is legible.",
+            "The marked webbing face and fixture face are distinguishable.",
+            "The shown entry corresponds to the declared slot path."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "declared_slot_path",
+            "slot_labels",
+            "front_face_marker",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "webbing_scope",
+              "label": "This is a non-loadbearing prototype and the reference path is the intended design."
+            },
+            {
+              "id": "webbing_faces",
+              "label": "I identified the real front/back marks and the free webbing end."
+            }
+          ],
+          "recoveryHint": "Add visible face marks or expose the entry slot. Do not substitute an assumed over/under pattern for an unreadable reference."
+        },
+        {
+          "id": "thread_segment",
+          "title": "Thread the next constrained segment",
+          "instruction": "Check one entry/exit pair at a time. Guide the free end through its next declared slot while keeping the marked face consistent.",
+          "visibleChecks": [
+            "The current entry and exit slot are visible.",
+            "The active segment follows the declared local slot order.",
+            "The visible webbing face does not show an unexplained half twist."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "declared_slot_path",
+            "front_face_marker",
+            "webbing_width_mm",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "webbing_local_path",
+              "label": "I physically checked the threaded slot sequence, including the current exit."
+            },
+            {
+              "id": "webbing_clearance",
+              "label": "The actual webbing passes through the slot using permitted actions without forced deformation."
+            }
+          ],
+          "recoveryHint": "Withdraw only the free end to the last confirmed slot, expose the face mark and rethread that segment."
+        },
+        {
+          "id": "inspect_reverse_path",
+          "title": "Expose the hidden return path",
+          "instruction": "Request the rear or underside view needed to inspect the return segment. Keep the unseen face unknown and identify the earliest slot responsible for a twist or wrong return.",
+          "visibleChecks": [
+            "The requested return-side segment is actually exposed.",
+            "Its shown slot labels agree with the declared return path.",
+            "No visible fold or half twist contradicts the marked face route."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "declared_slot_path",
+            "slot_labels",
+            "front_face_marker",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "webbing_reverse_inspected",
+              "label": "I inspected the rear or underside route rather than assuming the front view proves it."
+            },
+            {
+              "id": "webbing_twist_resolved",
+              "label": "I checked the whole threaded path for twists and corrected any wrong return segment."
+            }
+          ],
+          "recoveryHint": "Back out to the first incorrect face transition. Preserve the confirmed upstream path and recheck the newly exposed rear segment."
+        },
+        {
+          "id": "review_lacing",
+          "title": "Review the tail and reversible operation",
+          "measurements": [
+            {
+              "id": "observed_free_tail_mm",
+              "label": "Actual free tail length after operation",
+              "unit": "mm",
+              "factId": "minimum_tail_length_mm",
+              "relation": "gte"
+            }
+          ],
+          "instruction": "Inspect the final path and free end after the declared gentle operating motion. Request the actual tail-length reading; visible neatness is not a retention test.",
+          "visibleChecks": [
+            "The shown final slot and free tail agree with the reference route.",
+            "The marked face remains consistent across the inspected segment.",
+            "The free end is accessible for the declared release action."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "declared_slot_path",
+            "minimum_tail_length_mm",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "webbing_tail_measured",
+              "label": "I measured the actual free tail against the declared minimum."
+            },
+            {
+              "id": "webbing_operation_reset",
+              "label": "I checked the prototype opening/release and reset using only permitted actions."
+            }
+          ],
+          "recoveryHint": "If operating the prototype pulls a tail through or introduces a twist, record that failure and recheck the affected path and tail reserve."
+        }
+      ],
+      "completionChecks": [
+        "The declared front/back slot sequence is inspected on both sides.",
+        "Twists and wrong return paths are resolved rather than hidden.",
+        "Actual tail reserve, reversible operation and reset are operator-reviewed."
+      ],
+      "limitations": [
+        "The camera cannot establish friction, tensile strength or secure retention.",
+        "An unseen rear path cannot pass from front-view evidence alone.",
+        "This profile does not validate lifting, climbing, restraint or personal-support equipment."
+      ]
+    },
+    "session": {
+      "workflowId": "webbing_lacing",
+      "revision": 1,
+      "sceneEpoch": 1,
+      "currentStepId": "inspect_reverse_path",
+      "status": "active",
+      "facts": {
+        "scope_confirmed": true,
+        "declared_slot_path": "Synthetic reference: W2 front entry, W8 rear return, W5 front entry.",
+        "slot_labels": "Synthetic W2, W8, W5, FRONT and FREE END.",
+        "front_face_marker": "Synthetic blue line marks the webbing front; FRONT marks the board.",
+        "webbing_width_mm": 20,
+        "minimum_tail_length_mm": 30,
+        "operator_constraints": "Hypothetical right-hand non-loadbearing bench prototype; reversible threading only."
+      },
+      "completedSteps": [],
+      "reviews": [],
+      "beforeTurn": null,
+      "latestTurn": null,
+      "guidance": {
+        "actionable": false,
+        "canConfirm": false,
+        "reasons": [
+          "Capture a before view of this step."
+        ]
+      },
+      "createdAt": "2026-11-03T08:18:34.482Z",
+      "updatedAt": "2026-11-03T08:18:34.482Z",
+      "plan": {
+        "version": "camera-plan-v1",
+        "current": {
+          "id": "plan:8a9ccb7e-e867-4986-9829-00449e347fdd:scene:1",
+          "parentId": null,
+          "version": {
+            "runId": "8a9ccb7e-e867-4986-9829-00449e347fdd",
+            "factsHash": "a1d50aea7300e27d08d8ed6507475ba9447cc59506f0a571714c9314f49b1cae",
+            "sceneEpoch": 1,
+            "stepId": "inspect_reverse_path",
+            "revision": 1,
+            "planVersion": "plan:8a9ccb7e-e867-4986-9829-00449e347fdd:scene:1"
+          },
+          "mandatoryObligations": "{\"completionChecks\":[\"The declared front/back slot sequence is inspected on both sides.\",\"Twists and wrong return paths are resolved rather than hidden.\",\"Actual tail reserve, reversible operation and reset are operator-reviewed.\"],\"limitations\":[\"The camera cannot establish friction, tensile strength or secure retention.\",\"An unseen rear path cannot pass from front-view evidence alone.\",\"This profile does not validate lifting, climbing, restraint or personal-support equipment.\"],\"physicalScope\":\"Non-loadbearing instrument-pouch or bench-fixture webbing prototypes with a known slot path. The result carries no load-retention or personal-support rating.\",\"requiredFacts\":[{\"id\":\"scope_confirmed\",\"kind\":\"boolean\",\"label\":\"This is a non-loadbearing webbing prototype, with no personal-support or secure-load claim.\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"declared_slot_path\",\"kind\":\"text\",\"label\":\"Exact slot order and front/back path from the reference design\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"slot_labels\",\"kind\":\"text\",\"label\":\"Actual labels on every slot and the fixed or free webbing end\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"front_face_marker\",\"kind\":\"text\",\"label\":\"Physical mark identifying the webbing front face and fixture front\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"webbing_width_mm\",\"kind\":\"number\",\"label\":\"Measured webbing width for this prototype\",\"max\":100,\"min\":0.5,\"unit\":\"mm\"},{\"id\":\"minimum_tail_length_mm\",\"kind\":\"number\",\"label\":\"Minimum free tail length required by the reference design\",\"max\":2000,\"min\":0,\"unit\":\"mm\"},{\"id\":\"operator_constraints\",\"kind\":\"text\",\"label\":\"Permitted threading/pulling actions and available hands or supports\",\"max\":null,\"min\":null,\"unit\":null}],\"steps\":[{\"id\":\"identify_lacing\",\"instruction\":\"Show the slot labels and face marks. Resolve the entry slot and the next front/back transition before asking the operator to thread anything.\",\"measurements\":[],\"requiredConfirmations\":[{\"id\":\"webbing_scope\",\"label\":\"This is a non-loadbearing prototype and the reference path is the intended design.\"},{\"id\":\"webbing_faces\",\"label\":\"I identified the real front/back marks and the free webbing end.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"declared_slot_path\",\"slot_labels\",\"front_face_marker\",\"operator_constraints\"],\"visibleChecks\":[\"The active entry slot label is legible.\",\"The marked webbing face and fixture face are distinguishable.\",\"The shown entry corresponds to the declared slot path.\"]},{\"id\":\"thread_segment\",\"instruction\":\"Check one entry/exit pair at a time. Guide the free end through its next declared slot while keeping the marked face consistent.\",\"measurements\":[],\"requiredConfirmations\":[{\"id\":\"webbing_local_path\",\"label\":\"I physically checked the threaded slot sequence, including the current exit.\"},{\"id\":\"webbing_clearance\",\"label\":\"The actual webbing passes through the slot using permitted actions without forced deformation.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"declared_slot_path\",\"front_face_marker\",\"webbing_width_mm\",\"operator_constraints\"],\"visibleChecks\":[\"The current entry and exit slot are visible.\",\"The active segment follows the declared local slot order.\",\"The visible webbing face does not show an unexplained half twist.\"]},{\"id\":\"inspect_reverse_path\",\"instruction\":\"Request the rear or underside view needed to inspect the return segment. Keep the unseen face unknown and identify the earliest slot responsible for a twist or wrong return.\",\"measurements\":[],\"requiredConfirmations\":[{\"id\":\"webbing_reverse_inspected\",\"label\":\"I inspected the rear or underside route rather than assuming the front view proves it.\"},{\"id\":\"webbing_twist_resolved\",\"label\":\"I checked the whole threaded path for twists and corrected any wrong return segment.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"declared_slot_path\",\"slot_labels\",\"front_face_marker\",\"operator_constraints\"],\"visibleChecks\":[\"The requested return-side segment is actually exposed.\",\"Its shown slot labels agree with the declared return path.\",\"No visible fold or half twist contradicts the marked face route.\"]},{\"id\":\"review_lacing\",\"instruction\":\"Inspect the final path and free end after the declared gentle operating motion. Request the actual tail-length reading; visible neatness is not a retention test.\",\"measurements\":[{\"factId\":\"minimum_tail_length_mm\",\"id\":\"observed_free_tail_mm\",\"label\":\"Actual free tail length after operation\",\"relation\":\"gte\",\"unit\":\"mm\"}],\"requiredConfirmations\":[{\"id\":\"webbing_tail_measured\",\"label\":\"I measured the actual free tail against the declared minimum.\"},{\"id\":\"webbing_operation_reset\",\"label\":\"I checked the prototype opening/release and reset using only permitted actions.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"declared_slot_path\",\"minimum_tail_length_mm\",\"operator_constraints\"],\"visibleChecks\":[\"The shown final slot and free tail agree with the reference route.\",\"The marked face remains consistent across the inspected segment.\",\"The free end is accessible for the declared release action.\"]}],\"workflowId\":\"webbing_lacing\"}",
+          "substepsByPhase": {}
+        },
+        "history": [],
+        "proposals": [],
+        "approvals": []
+      },
+      "reasoning": {
+        "version": "camera-reasoning-v1",
+        "activePredictionId": null,
+        "predictions": [],
+        "comparisons": [],
+        "recoveries": [],
+        "entities": [],
+        "entityBindings": [],
+        "hypotheses": [],
+        "claims": []
+      }
+    },
+    "frame": {
+      "id": "9e0affc1-c500-418c-b64e-b9cac2a3a654",
+      "sha256": "ca6aad64d10f17acbbd33016c4edd5b293d9ae380b0ab0d9526b4518016a2427",
+      "purpose": "before",
+      "source": "upload",
+      "capturedAt": null,
+      "receivedAt": "2026-11-03T08:18:34.482Z",
+      "stepId": "inspect_reverse_path",
+      "revision": 1
+    },
+    "framePath": "/tmp/countershot-flow-evaluation-v3-live/verification/meta-flow-live-1793693823687-3e3acce2/hidden_reverse_relationship/current.png",
+    "execution": {
+      "budget": {
+        "version": "model-execution-v1",
+        "runId": "8a9ccb7e-e867-4986-9829-00449e347fdd",
+        "createdAt": 1793693914538,
+        "deadlineAt": 1793697514538,
+        "cancelledAt": null,
+        "limits": {
+          "maxInvocations": 1,
+          "maxOutputTokens": 6000,
+          "maxKnownTotalTokens": 400000,
+          "maxInputBytes": 33554432,
+          "maxToolExecutions": 0,
+          "maxToolsPerResponse": 0,
+          "maxDurationMs": 3600000
+        },
+        "invocations": [],
+        "tools": []
+      }
+    },
+    "operatorNote": "Synthetic rendered-bench evaluation only. The declared facts are test inputs, not measurements or a physical trial. Inspect the shown current scene and keep absent evidence unresolved."
+  },
+  "expectationSha256": "250b03152c2a445fe610cc5c3ba7b8b4d18c19259d52ec5ed5e32b5e0d082096",
+  "preparedAt": "2026-11-03T08:18:34.539Z"
+}

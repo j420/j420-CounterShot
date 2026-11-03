@@ -1,0 +1,27 @@
+{
+  "kind": "meta_flow_evaluation",
+  "definitionVersion": "meta-flow-evaluation-v1",
+  "definitionSha256": "26a8a0aff83d70eff91e7ebc88edb86c6fcad4ee0745982c2d5bf9726fbbd071",
+  "startedAt": "2026-11-03T08:17:03.687Z",
+  "live": true,
+  "automaticRetries": 0,
+  "maximumAttempts": 6,
+  "model": "muse-spark-1.3",
+  "promptVersion": "camera-decision-3.0.0",
+  "schemaVersion": "3.0.0",
+  "engineVersion": "3.0.0",
+  "maxOutputTokens": 6000,
+  "timeoutMs": 90000,
+  "source": "new_rendered_diagrams_not_photographs",
+  "physicalStatus": "untested",
+  "expectedRulesProvidedToModel": false,
+  "disclosure": "Expected rules are withheld from model input. This fixed challenge set is not an independent physical benchmark and does not establish real-object performance.",
+  "caseIds": [
+    "obscured_identity",
+    "replaced_workpiece",
+    "failed_reported_reading",
+    "visible_instruction_injection",
+    "visible_prediction_supported",
+    "hidden_reverse_relationship"
+  ]
+}

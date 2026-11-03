@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-11-03T08:47:44.037703+00:00",
+  "checks": [
+    {
+      "check": "unit_api",
+      "passed": true,
+      "testCount": 396,
+      "logSha256": "19639b2ec41a4a4949842319eba6956bf2ca7861dd88391f6cc29b99d29db5df"
+    },
+    {
+      "check": "browser",
+      "passed": true,
+      "testCount": 38,
+      "logSha256": "f436619aff27d767c1a3aebf7d6d01dff130f4abafc17bbeaa1af4334ab77d94"
+    },
+    {
+      "check": "build",
+      "passed": true,
+      "testCount": null,
+      "logSha256": "b2880cb870c5118ddc3dc3f41115839fe69d1d57710d0e9806a4b0cdf3036d9c"
+    },
+    {
+      "check": "typecheck",
+      "passed": true,
+      "testCount": null,
+      "logSha256": "7b7df10e148caad30a633de18232e55b423588e1a8a15babf97538770d927e26"
+    }
+  ],
+  "sourceSha256": {
+    "src/camera/schema.ts": "d1c31b593b47a3bfd14e245cf1fa0aefe967c4b218552e166c09f2fb5b56b3e3",
+    "src/camera/decision-contract.ts": "0013d5ac75bd5a042c836367c01e0e552914dc2dece41eaef10b31176bf65d8c",
+    "src/camera/engine.ts": "e9de4e18723ea1f8c203000e9b8bb2cf1de25f8f44342d507f2b7cfbddc81997",
+    "src/camera/context.ts": "89df20b592b386dfbbace29b2bb67427647fb65e984dc06968e21d84b54852e9",
+    "src/camera/meta.ts": "4c5aa760b4f13452ca1148d676acc499b617fa5a9806bda8696e4af8b1803f77",
+    "src/camera/reasoning.ts": "bb5df932c392d50e59716e0a82b1b51690052c55b98636913fd1b3c54c4469b0",
+    "src/camera/plan.ts": "a143dcf6e8882a001503ec480fd3e6788de27681570d2bcc36ab93fc9047980f",
+    "src/camera/evidence.ts": "dda5a254031f51919be275921582909f542038e851124818e1396baa1f285fd2",
+    "src/camera/execution.ts": "f5d15754c8e6f5969c1c5855a59b7b931c1f28c94be33f1881f5b3eb7dfeb4db",
+    "src/camera/server.ts": "8835c2537a26fdcd5d89ef26f664d1981832eb7bda4d38b3818f5c0b339561d8",
+    "src/meta/capabilities.ts": "23dc56ec51f77d3521aeddee310dd03a3d7a3314cbe82178ec2bc7ed39f49143",
+    "src/meta/budget.ts": "2c7d4b376e57078ee107c607de480a7c9456aa871c7e393e0964b2c0c1bdcdf6",
+    "src/meta/execution.ts": "a0a5946a7fafd164650eb620667d231322dd69569bed6b7e6a00c96456c4bbc4",
+    "src/meta/index.ts": "80bde564955f50a1c6d70d9b47c9612bbeac7c801527a2e69ad2ecf37ad5c3eb",
+    "src/meta/client.ts": "1bbd0ee0701e47c23652d7149505a80fa3f04efec6b20310aa8835fc30278523",
+    "src/jobs/queue.ts": "f9d61f8f8304a2779064f91254319e2db446a6e439392b6a00bbb0420c9a77ab",
+    "src/jobs/process.ts": "4a284b406913c2197693ce1c6aea0bca6fd1d4ceb053e98fce8dfe8c3d8f0b79",
+    "components/camera-workbench.tsx": "cb02072e432e6e8c1186eb725651e1a3c17f874a921d02a9974905e53f0268d8"
+  },
+  "liveModelCalls": 6,
+  "liveCasesPassed": 6,
+  "physicalStatus": "untested",
+  "archiveRetrievalTransport": "mocked_endpoint_integration",
+  "source": "actual command logs plus independent reviews"
+}

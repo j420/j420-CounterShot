@@ -1,0 +1,487 @@
+{
+  "kind": "recorded_meta_camera_comparison_contract",
+  "synthetic": true,
+  "sceneSource": "rendered_diagrams_not_photos",
+  "physicalStatus": "untested",
+  "inferenceRequested": true,
+  "syntheticStageSelection": true,
+  "admittedBeforeView": false,
+  "earlierOperatorChecksFabricated": false,
+  "recordedAt": "2026-11-02T18:41:24.666Z",
+  "disclosure": "One direct Meta assessor transport/interpretation probe with two images. Production session rules do not admit an after view without a usable before view. This record creates no app session, operator confirmation, physical trial or workflow completion.",
+  "requestConfiguration": {
+    "promptVersion": "camera-closed-loop-1.0.1",
+    "maxOutputTokens": 6000,
+    "reasoningEffort": "low",
+    "timeoutMs": 90000,
+    "automaticRetries": 0,
+    "attachedImages": 2
+  },
+  "previous": {
+    "aggregate": "fixtures/recorded-meta-camera-assessments.json",
+    "providerResponseId": "resp_6ae8d4dbe8bb72594e6f4d6d",
+    "imageArtifact": "docs/examples/camera-harness_routing.png",
+    "sha256": "9772b435d24b023b62ade255c8dc95cbae15cab11e6e4845b830b786e5a68504",
+    "bytes": 48306
+  },
+  "current": {
+    "imageArtifact": "docs/examples/camera-harness-after.png",
+    "sha256": "44fed635e04a9b0a75d8671aad4ee2df0274192d81531e8522a2f4fd5bb763ce",
+    "bytes": 48338
+  },
+  "expectedDiagramDifferenceNotProvidedAsInstruction": "A/B swapped routes are changed to A-L-P1 and B-M-P2; C-R-P3 and the declared target remain unchanged.",
+  "input": {
+    "workflow": {
+      "id": "harness_routing",
+      "iteration": 1,
+      "title": "Route a branching sensor harness",
+      "summary": "Keep branch identities, service loops and a declared routing graph consistent while the camera checks the next placement.",
+      "physicalScope": "Disconnected, unpowered prototype sensor harnesses on a labelled bench routing board. The product is physical routing, not electrical commissioning.",
+      "requiredFacts": [
+        {
+          "id": "scope_confirmed",
+          "label": "This is a disconnected, unpowered bench harness; I will use the declared operator resources.",
+          "kind": "boolean",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "target_port_map",
+          "label": "Declared branch-to-port map and required route through each anchor",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "branch_labels",
+          "label": "Actual labels on the trunk, every branch and every destination",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "minimum_bend_radius_mm",
+          "label": "Minimum bend radius from the actual cable specification",
+          "kind": "number",
+          "unit": "mm",
+          "min": 0.1,
+          "max": 1000
+        },
+        {
+          "id": "minimum_service_slack_mm",
+          "label": "Minimum free service-loop length required at each destination",
+          "kind": "number",
+          "unit": "mm",
+          "min": 0,
+          "max": 2000
+        },
+        {
+          "id": "retention_method",
+          "label": "Actual clips, combs or reversible ties available and how they are released",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "operator_constraints",
+          "label": "Available hands, permitted manipulations and prohibited holding or body supports",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "steps": [
+        {
+          "id": "identify_harness",
+          "title": "Ground the branch identities",
+          "instruction": "Show the labelled trunk, branch ends and destination map. Resolve one unreadable or conflicting identity before suggesting a route.",
+          "visibleChecks": [
+            "The active branch label and intended destination label are legible.",
+            "The referenced anchor or routing region is visible.",
+            "No visible label contradicts the declared port map."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "target_port_map",
+            "branch_labels",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_unpowered",
+              "label": "This is a disconnected, unpowered bench harness."
+            },
+            {
+              "id": "harness_identity",
+              "label": "I matched the actual branch labels to the declared destination map."
+            }
+          ],
+          "recoveryHint": "If an identity is hidden or duplicated, label and expose that branch; do not infer its destination from colour alone."
+        },
+        {
+          "id": "route_harness",
+          "title": "Route around the real constraints",
+          "measurements": [
+            {
+              "id": "observed_minimum_bend_radius_mm",
+              "label": "Smallest actual bend radius inspected",
+              "unit": "mm",
+              "factId": "minimum_bend_radius_mm",
+              "relation": "gte"
+            },
+            {
+              "id": "observed_minimum_service_slack_mm",
+              "label": "Smallest actual free service length inspected",
+              "unit": "mm",
+              "factId": "minimum_service_slack_mm",
+              "relation": "gte"
+            }
+          ],
+          "instruction": "Check one branch placement against the target path, the visible anchors and its neighbours. Ask for a ruler or specification reading when bend or slack limits matter.",
+          "visibleChecks": [
+            "The active branch follows its declared anchor order.",
+            "Its path is not visibly trapped under an unintended branch or clip.",
+            "The destination and free service loop remain identifiable."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "target_port_map",
+            "minimum_bend_radius_mm",
+            "minimum_service_slack_mm",
+            "retention_method",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_bend_measured",
+              "label": "I checked actual bends against the declared minimum radius."
+            },
+            {
+              "id": "harness_slack_measured",
+              "label": "I measured the required free service length at each destination."
+            }
+          ],
+          "recoveryHint": "Release only the affected reversible clip, expose the crossing and reroute that branch. Recheck bend and service length after moving an anchor."
+        },
+        {
+          "id": "retain_harness",
+          "title": "Retain without hiding a routing error",
+          "instruction": "Inspect the proposed retention point before closing its clip or tie. Keep labels and the service loop accessible for the final audit.",
+          "visibleChecks": [
+            "The next retention point is visible and corresponds to the declared method.",
+            "The active label is not concealed by the retention placement.",
+            "No visible branch crosses into an unintended destination."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "retention_method",
+            "operator_constraints",
+            "target_port_map"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_no_pinching",
+              "label": "I inspected for pinching and checked that the service loops remain free."
+            },
+            {
+              "id": "harness_retention_released",
+              "label": "I demonstrated the declared clip or tie can be released with permitted actions."
+            }
+          ],
+          "recoveryHint": "If retention moves a branch or hides its identity, reopen that point and repeat the affected routing and measurement checks."
+        },
+        {
+          "id": "audit_harness",
+          "title": "Audit the graph and release the work",
+          "measurements": [
+            {
+              "id": "observed_minimum_bend_radius_mm",
+              "label": "Smallest actual bend radius after retention",
+              "unit": "mm",
+              "factId": "minimum_bend_radius_mm",
+              "relation": "gte"
+            },
+            {
+              "id": "observed_minimum_service_slack_mm",
+              "label": "Smallest actual free service length after retention",
+              "unit": "mm",
+              "factId": "minimum_service_slack_mm",
+              "relation": "gte"
+            }
+          ],
+          "instruction": "Trace each labelled branch from trunk to destination. Treat unseen crossings and any required electrical tests as unresolved rather than guessing a pass.",
+          "visibleChecks": [
+            "The shown branch reaches the destination named in the map.",
+            "The routing board or support does not visibly trap the finished harness.",
+            "The inspected labels and service loops are still visible after retention."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "target_port_map",
+            "branch_labels",
+            "minimum_bend_radius_mm",
+            "minimum_service_slack_mm",
+            "retention_method",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_all_branches",
+              "label": "I traced every branch to its specified destination, including hidden sections."
+            },
+            {
+              "id": "harness_release_reset",
+              "label": "I released the routed harness and reset the board without undeclared help."
+            }
+          ],
+          "recoveryHint": "A wrong destination invalidates that branch audit. Reopen its retention, trace it physically and recheck all shared routing points."
+        }
+      ],
+      "completionChecks": [
+        "Every declared branch-to-port relationship is reviewed.",
+        "Bend and service-loop limits are checked by the operator.",
+        "Retention, release and reset use only declared resources."
+      ],
+      "limitations": [
+        "A camera cannot establish electrical continuity, insulation integrity or connector pinout.",
+        "Bend radius and free cable length require actual measurement.",
+        "A visible route is not evidence for an occluded branch segment."
+      ]
+    },
+    "session": {
+      "workflowId": "harness_routing",
+      "revision": 1,
+      "sceneEpoch": 1,
+      "currentStepId": "route_harness",
+      "status": "active",
+      "facts": {
+        "scope_confirmed": true,
+        "target_port_map": "Synthetic fixture: TRUNK branches A/B/C route through anchors L/M/R to ports P1/P2/P3 respectively.",
+        "branch_labels": "Synthetic TRUNK, A, B, C, L, M, R, P1, P2, P3.",
+        "minimum_bend_radius_mm": 10,
+        "minimum_service_slack_mm": 20,
+        "retention_method": "Synthetic reversible open combs and reusable clips.",
+        "operator_constraints": "Hypothetical right-hand bench operation; no helper or body bracing."
+      },
+      "completedSteps": [],
+      "reviews": [],
+      "beforeTurn": null,
+      "latestTurn": {
+        "id": "dc52c12e-d992-4f5b-878c-c506c25a353c",
+        "sha256": "9772b435d24b023b62ade255c8dc95cbae15cab11e6e4845b830b786e5a68504",
+        "purpose": "before",
+        "source": "upload",
+        "capturedAt": null,
+        "receivedAt": "2026-11-02T18:22:12.770Z",
+        "stepId": "route_harness",
+        "revision": 1,
+        "frameId": "dc52c12e-d992-4f5b-878c-c506c25a353c",
+        "frameSha256": "9772b435d24b023b62ade255c8dc95cbae15cab11e6e4845b830b786e5a68504",
+        "assessment": {
+          "summary": "Rendered diagram shows A/B swapped versus TARGET: A is drawn M-P2 and B is drawn L-P1. No physical bend, slack, trapping, or retention can be verified from this drawing.",
+          "frameQuality": "insufficient",
+          "continuity": "first_view",
+          "observations": [
+            {
+              "id": "obs_target",
+              "label": "TARGET: A-L-P1; B-M-P2; C-R-P3",
+              "detail": "Printed target requires A-L-P1 and B-M-P2, which conflicts with the drawn routes.",
+              "box": {
+                "x": 0.205,
+                "y": 0.815,
+                "width": 0.57,
+                "height": 0.06
+              }
+            },
+            {
+              "id": "obs_branchA",
+              "label": "BRANCH A drawn via M to P2",
+              "detail": "Diagram draws blue BRANCH A through M to P2, opposite to target A-L-P1.",
+              "box": {
+                "x": 0.44,
+                "y": 0.405,
+                "width": 0.39,
+                "height": 0.06
+              }
+            },
+            {
+              "id": "obs_branchB",
+              "label": "BRANCH B drawn via L to P1",
+              "detail": "Diagram draws magenta BRANCH B through L to P1, opposite to target B-M-P2.",
+              "box": {
+                "x": 0.44,
+                "y": 0.265,
+                "width": 0.39,
+                "height": 0.06
+              }
+            },
+            {
+              "id": "obs_trunk",
+              "label": "TRUNK block",
+              "detail": "TRUNK origin for all three drawn branches; physical cable, bend and slack not measurable from this render.",
+              "box": {
+                "x": 0.126,
+                "y": 0.41,
+                "width": 0.08,
+                "height": 0.1
+              }
+            }
+          ],
+          "stepStatus": "needs_information",
+          "nextAction": {
+            "kind": "retake",
+            "instruction": "Retake as a top-down photo of the actual disconnected bench board showing the current physical position of Branch A and Branch B relative to anchors L/M and ports P1/P2. Do not move cables for this photo.",
+            "expectedVisibleResult": "Real bench photo shows TRUNK, branches A/B, anchors L/M, and ports P1/P2 with actual cable positions visible.",
+            "stopCondition": "Stop when the physical board, labels, and both branches are visible or if that view cannot be provided.",
+            "targetObservationIds": [
+              "obs_branchA",
+              "obs_branchB"
+            ]
+          },
+          "questions": [
+            "Can you provide a photo of the actual physical board, not this render, showing branches A/B at L/M?",
+            "What are the actual measured bend radius at L/M and free slack at P1/P2 with a ruler?"
+          ],
+          "suggestedStepId": "route_harness"
+        }
+      },
+      "guidance": {
+        "actionable": false,
+        "canConfirm": false,
+        "reasons": [
+          "Capture a before view of this step."
+        ]
+      },
+      "createdAt": "2026-11-02T18:22:12.770Z",
+      "updatedAt": "2026-11-02T18:22:12.770Z"
+    },
+    "frame": {
+      "id": "a5b1336c-41fd-4f5a-85c9-f384877b437a",
+      "sha256": "44fed635e04a9b0a75d8671aad4ee2df0274192d81531e8522a2f4fd5bb763ce",
+      "purpose": "after",
+      "source": "upload",
+      "capturedAt": null,
+      "receivedAt": "2026-11-02T18:41:24.666Z",
+      "stepId": "route_harness",
+      "revision": 1
+    },
+    "operatorNote": "Synthetic paired-image transport probe: compare the labelled previous and current diagrams. Neither is a photographed or physically tested operation. Do not infer actual bend, slack or retention measurements."
+  },
+  "status": "assessment_returned",
+  "output": {
+    "summary": "Current render now draws A-L-P1, B-M-P2, C-R-P3 matching TARGET, correcting previous A/B swap. Both views are synthetic diagrams with no physical bend, slack, trapping, or retention verifiable.",
+    "frameQuality": "insufficient",
+    "continuity": "same_scene",
+    "observations": [
+      {
+        "id": "obs_render",
+        "label": "Synthetic render disclaimer",
+        "detail": "Current image self-declares as rendered diagram, not a photographed or physically tested operation.",
+        "box": {
+          "x": 0.024,
+          "y": 0.099,
+          "width": 0.58,
+          "height": 0.05
+        }
+      },
+      {
+        "id": "obs_a",
+        "label": "BRANCH A drawn via L to P1",
+        "detail": "Blue line drawn TRUNK to L to P1, now matching TARGET A-L-P1, correcting previous A-M-P2 swap.",
+        "box": {
+          "x": 0.165,
+          "y": 0.245,
+          "width": 0.67,
+          "height": 0.12
+        }
+      },
+      {
+        "id": "obs_b",
+        "label": "BRANCH B drawn via M to P2",
+        "detail": "Magenta line drawn TRUNK to M to P2, now matching TARGET B-M-P2, correcting previous B-L-P1 swap.",
+        "box": {
+          "x": 0.165,
+          "y": 0.46,
+          "width": 0.67,
+          "height": 0.1
+        }
+      },
+      {
+        "id": "obs_c",
+        "label": "BRANCH C drawn via R to P3",
+        "detail": "Green line drawn TRUNK to R to P3, consistent with TARGET C-R-P3.",
+        "box": {
+          "x": 0.167,
+          "y": 0.592,
+          "width": 0.67,
+          "height": 0.11
+        }
+      },
+      {
+        "id": "obs_target",
+        "label": "TARGET: A-L-P1; B-M-P2; C-R-P3",
+        "detail": "Printed target requires A-L-P1; B-M-P2; C-R-P3, which current drawing now follows diagrammatically.",
+        "box": {
+          "x": 0.26,
+          "y": 0.817,
+          "width": 0.46,
+          "height": 0.05
+        }
+      }
+    ],
+    "stepStatus": "needs_information",
+    "nextAction": {
+      "kind": "retake",
+      "instruction": "Retake as a top-down photo of the actual physical bench board showing Branch A at L-P1 and Branch B at M-P2. Do not move cables for this photo.",
+      "expectedVisibleResult": "Top-down photo of real disconnected board shows TRUNK, branches A/B/C at anchors L/M/R and ports P1/P2/P3 with actual cable positions.",
+      "stopCondition": "Stop when physical board, labels, and all three branches are visible or if that view cannot be provided.",
+      "targetObservationIds": [
+        "obs_a",
+        "obs_b"
+      ]
+    },
+    "questions": [
+      "Can you provide a photo of the actual physical board, not this render, showing branches at L/M/R and P1/P2/P3?",
+      "What are the actual measured bend radii at L/M/R and free slack at P1/P2/P3 with a ruler vs 10mm and 20mm minima?"
+    ],
+    "suggestedStepId": "route_harness"
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae8d95ac390dddff68243f2",
+    "latencyMs": 6370,
+    "usage": [
+      {
+        "input_tokens": 4117,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 1511,
+        "output_tokens_details": {
+          "reasoning_tokens": 792
+        },
+        "total_tokens": 5628
+      }
+    ],
+    "promptVersion": "camera-closed-loop-1.0.1",
+    "responseIds": [
+      "resp_6ae8d95ac390dddff68243f2"
+    ]
+  },
+  "syntheticEngineGate": {
+    "actionable": false,
+    "canConfirm": false,
+    "reasons": [
+      "The relevant physical state is not clearly visible. Retake the view.",
+      "Resolve the stated uncertainty before continuing.",
+      "Retake or pause as requested; no physical action is admitted.",
+      "Capture a usable before view before reviewing this step."
+    ]
+  },
+  "completedSteps": 0
+}

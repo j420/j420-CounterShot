@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>CounterShot — colour directions</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172333; background: #eef0f3; font-synthesis: none; }
+    body { margin: 0; }
+    button { font: inherit; }
+    svg { display: block; flex: 0 0 auto; }
+    .page { max-width: 1600px; margin: auto; padding: 30px 40px 28px; }
+    .masthead { display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid #d3d9e1; padding-bottom: 22px; }
+    .wordmark { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 740; letter-spacing: -.7px; }
+    .wordmark > svg { color: #3154e9; }
+    .edition { color: #536176; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .8px; text-transform: uppercase; }
+    .intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 35px; padding: 30px 0 28px; }
+    h1 { max-width: 800px; font-size: clamp(32px, 4.3vw, 57px); line-height: 1.05; font-weight: 650; letter-spacing: -2.5px; margin: 0; }
+    h1 em { font-family: Georgia, serif; font-weight: 400; color: #526178; }
+    .intro p { max-width: 370px; font-size: 14px; line-height: 1.8; margin: 0; color: #526178; }
+    .study { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(330px, .85fr); align-items: start; gap: 24px; }
+    .palette-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; min-width: 0; }
+    .palette-card { min-width: 0; background: var(--canvas); color: var(--ink); border: 1px solid #d1d8e1; border-radius: 20px; padding: 22px; position: relative; transition: border-color 160ms ease, box-shadow 160ms ease; }
+    .palette-card[data-selected="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+    .palette-heading { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 9px; }
+    .palette-card .mode { color: var(--muted); font: 10px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; letter-spacing: 1px; }
+    .recommended { color: var(--ink); border: 1px solid; border-color: color-mix(in srgb, var(--ink) 22%, transparent); padding: 4px 8px; border-radius: 20px; font-size: 9px; font-weight: 650; letter-spacing: .2px; }
+    .palette-card h2 { font-size: clamp(19px, 1.7vw, 25px); letter-spacing: -.8px; margin: 0 0 7px; line-height: 1.25; }
+    .palette-description { color: var(--muted); font-size: 12px; line-height: 1.65; margin: 0 0 17px; min-height: 39px; }
+    .mini { padding: 14px; border-radius: 13px; background: var(--panel); border: 1px solid; border-color: color-mix(in srgb, var(--ink) 13%, transparent); }
+    .mini-brand { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; }
+    .mini-brand i { height: 7px; width: 7px; border-radius: 3px; background: var(--primary); }
+    .mini-flow { display: flex; align-items: center; gap: 7px; margin: 14px 0 12px; font-size: 10px; color: var(--muted); }
+    .mini-flow svg { width: 11px; height: 11px; color: var(--muted); }
+    .mini-action { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+    .mini-action strong { font-size: 12px; line-height: 1.5; font-weight: 650; }
+    .mini-cta { display: inline-flex; align-items: center; justify-content: center; gap: 7px; background: var(--primary); color: var(--primary-text); border-radius: 7px; padding: 9px 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .mini-cta svg { width: 12px; height: 12px; }
+    .swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px 8px; margin: 18px 0; }
+    .swatch { min-width: 0; }
+    .swatch-color { height: 15px; border-radius: 5px; background: var(--swatch); border: 1px solid; border-color: color-mix(in srgb, var(--ink) 18%, transparent); margin-bottom: 5px; }
+    .swatch span { display: block; color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .swatch code { font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--ink); white-space: nowrap; }
+    .choose { min-height: 42px; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: transparent; border: 1px solid; border-color: color-mix(in srgb, var(--ink) 23%, transparent); border-radius: 9px; color: var(--ink); font-size: 11px; font-weight: 650; cursor: pointer; }
+    .choose[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-text); }
+    .choose:hover { border-color: var(--primary); }
+    button:focus-visible, summary:focus-visible { outline: 3px solid var(--primary, #3154e9); outline-offset: 4px; }
+    .live-panel { position: sticky; top: 22px; min-width: 0; scroll-margin-top: 20px; }
+    .preview-caption { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; font-size: 11px; font-weight: 650; color: #526178; }
+    .preview-caption span:last-child { font-size: 10px; font-weight: 400; }
+    .preview { border-radius: 26px; overflow: hidden; background: var(--canvas); color: var(--ink); border: 1px solid #ccd4df; box-shadow: 0 18px 50px #17233312; }
+    .preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 20px; background: var(--panel); border-bottom: 1px solid; border-color: color-mix(in srgb, var(--ink) 11%, transparent); }
+    .preview-brand { display: flex; align-items: center; gap: 8px; font-size: 17px; letter-spacing: -.6px; font-weight: 750; }
+    .preview-brand svg { width: 24px; color: var(--primary); }
+    .preview-home { color: var(--muted); display: flex; gap: 5px; align-items: center; font-size: 10px; }
+    .preview-content { padding: 21px; }
+    .concept { display: inline-flex; align-items: center; gap: 6px; border: 1px solid; border-color: color-mix(in srgb, var(--accent) 35%, transparent); border-radius: 20px; background: color-mix(in srgb, var(--accent) 14%, var(--panel)); color: var(--ink); font-size: 9px; padding: 5px 9px; margin-bottom: 13px; }
+    .concept i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+    .preview h3 { font-size: 27px; line-height: 1.15; letter-spacing: -1px; margin: 0 0 9px; font-weight: 650; }
+    .preview-intro { font-size: 12px; line-height: 1.75; margin: 0 0 17px; color: var(--muted); }
+    .camera-scene { width: 100%; border-radius: 13px; overflow: hidden; border: 1px solid; border-color: color-mix(in srgb, var(--ink) 14%, transparent); background: #e1e3dc; }
+    .camera-scene > svg { display: block; width: 100%; height: auto; }
+    .preview-flow { list-style: none; padding: 0; margin: 16px 0; display: flex; align-items: center; justify-content: space-between; gap: 5px; color: var(--muted); }
+    .preview-flow li { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+    .preview-flow li svg { width: 12px; height: 12px; }
+    .preview-flow .active { color: var(--ink); font-weight: 700; }
+    .preview-flow > svg { width: 12px; height: 12px; color: var(--muted); }
+    .action-panel { padding: 16px; border: 1px solid; border-color: color-mix(in srgb, var(--primary) 30%, transparent); border-radius: 13px; background: var(--panel); }
+    .action-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    .action-panel strong { font-size: 15px; line-height: 1.55; display: block; font-weight: 650; }
+    .action-panel p { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .action-panel p b { font-weight: 650; color: var(--ink); }
+    .demo-action { display: flex; align-items: center; justify-content: center; gap: 9px; border-radius: 10px; padding: 14px; margin-top: 15px; background: var(--primary); color: var(--primary-text); font-size: 12px; font-weight: 700; }
+    .preview-note { color: var(--muted); font-size: 10px; line-height: 1.7; margin: 12px 0 0; text-align: center; }
+    .preview-meta { margin: 16px 2px 0; color: #526178; font-size: 12px; line-height: 1.75; }
+    .preview-meta strong { color: #172333; }
+    .contrast { margin-top: 12px; border-top: 1px solid #d3d9e1; padding-top: 11px; color: #526178; font-size: 11px; line-height: 1.7; }
+    .contrast summary { cursor: pointer; font-weight: 650; padding: 5px 0; }
+    .contrast p { margin: 7px 0 0; }
+    .footer { border-top: 1px solid #d3d9e1; margin-top: 25px; padding-top: 17px; display: flex; justify-content: space-between; gap: 20px; color: #526178; font-size: 11px; line-height: 1.7; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 1150px) {
+      .page { padding: 24px; }
+      .study { grid-template-columns: minmax(0, 1fr); }
+      .live-panel { position: static; max-width: 780px; width: 100%; justify-self: center; margin-top: 8px; }
+      .preview-content { padding: 24px; }
+      .camera-scene { max-height: 300px; }
+      .camera-scene > svg { max-height: 300px; }
+      .palette-description { min-height: 0; }
+    }
+    @media (max-width: 640px) {
+      .page { padding: 20px 17px; }
+      .masthead { gap: 12px; padding-bottom: 18px; }
+      .wordmark { font-size: 19px; }
+      .edition { font-size: 9px; text-align: right; max-width: 105px; letter-spacing: .4px; }
+      .intro { display: block; padding: 26px 0; }
+      h1 { font-size: 38px; letter-spacing: -1.7px; }
+      .intro p { margin-top: 15px; font-size: 13px; max-width: 350px; }
+      .palette-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+      .palette-card { padding: 19px; border-radius: 18px; }
+      .palette-card h2 { font-size: 24px; }
+      .palette-description { font-size: 12px; }
+      .swatch span { font-size: 9px; }
+      .swatch code { font-size: 11px; }
+      .choose { min-height: 45px; font-size: 12px; }
+      .preview-content { padding: 19px; }
+      .preview h3 { font-size: 27px; }
+      .preview-bar { padding: 18px; }
+      .footer { display: block; }
+      .footer span { display: block; margin-top: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div class="wordmark"><svg aria-hidden="true" width="27" height="30" viewBox="0 0 36 36" fill="none"><path d="M6 11L18 4L30 11V25L18 32L6 25V11ZM6 11L18 18L30 11M18 18V32M12 7.5L24 14.5" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>CounterShot.</div>
+      <span class="edition">Colour study<br>Appearance only</span>
+    </header>
+    <section class="intro" aria-labelledby="study-heading">
+      <h1 id="study-heading">A clearer view.<br><em>Four colour directions.</em></h1>
+      <p>Calm surfaces. One confident accent. Choose a palette to see how the camera workspace could feel.</p>
+    </section>
+    <div class="study">
+      <section id="palette-grid" class="palette-grid" aria-label="Compare colour palettes"></section>
+      <aside id="live-panel" class="live-panel" aria-label="Larger palette preview">
+        <div class="preview-caption"><span>THE WORKSPACE, IN COLOUR</span><span id="selected-name">Porcelain &amp; Cobalt</span></div>
+        <div id="preview" class="preview">
+          <div class="preview-bar"><div class="preview-brand"><svg aria-hidden="true" width="24" height="26" viewBox="0 0 36 36" fill="none"><path d="M6 11L18 4L30 11V25L18 32L6 25V11ZM6 11L18 18L30 11M18 18V32M12 7.5L24 14.5" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>CounterShot</div><span class="preview-home">Projects <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></span></div>
+          <div class="preview-content">
+            <span class="concept"><i></i> CONCEPT PREVIEW</span>
+            <h3>Make the next<br>move clear.</h3>
+            <p class="preview-intro">Show the connection. Review one next step.<br>Check what changed.</p>
+            <div class="camera-scene" role="img" aria-label="Illustrative bench scene with labelled branches A and B and two anchors. This is a diagram, not a photographed physical trial.">
+              <svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs><pattern id="bench-grid" width="27" height="27" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#bcc5bc"/></pattern></defs>
+                <rect width="600" height="340" fill="#e1e3dc"/><rect width="600" height="340" fill="url(#bench-grid)"/>
+                <rect x="38" y="32" width="523" height="272" rx="19" fill="#edf0e7" stroke="#b9c4b5"/>
+                <g fill="none" stroke-width="10" stroke-linecap="round"><path d="M91 224H178Q201 224 201 201V110Q201 88 225 88H452" stroke="#b2765a"/><path d="M91 246H278Q301 246 301 222V166Q301 143 326 143H452" stroke="#65877b"/></g>
+                <g fill="#c4caba" stroke="#7e8f7e" stroke-width="2"><rect x="71" y="208" width="32" height="55" rx="5"/><rect x="447" y="71" width="45" height="35" rx="5"/><rect x="447" y="126" width="45" height="35" rx="5"/></g>
+                <rect x="173" y="62" width="80" height="73" rx="11" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 5"/>
+                <g font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#32443a"><text x="76" y="192">A</text><text x="76" y="287">B</text><text x="463" y="58">L</text><text x="463" y="190">R</text></g>
+                <rect x="324" y="243" width="202" height="31" rx="15" fill="#fffdf6" stroke="#cbd2c5"/><text x="337" y="263" font-family="Arial,sans-serif" font-size="12" fill="#536250">Illustration · not a physical trial</text>
+              </svg>
+            </div>
+            <ol class="preview-flow" aria-label="Camera workflow"><li class="active"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3"/><path d="m7 6 2-3h6l2 3"/></svg>Show<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></li><li>Review<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></li><li>Check</li></ol>
+            <div class="action-panel"><div class="action-label">Your next view</div><strong>Show label A and the left anchor.</strong><p><b>Look for:</b> Both labels visible in the next photo.</p><p><b>Retake if:</b> The connection is still hidden.</p></div>
+            <span class="demo-action" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3M8 12h8"/></svg>Inspect selected photo</span>
+            <p class="preview-note">Illustrative controls only. No camera, upload or AI request.</p>
+          </div>
+        </div>
+        <p class="preview-meta" id="preview-description"><strong>Recommended:</strong> Porcelain &amp; Cobalt pairs bright, neutral surfaces with a clear blue action colour.</p>
+        <details class="contrast"><summary>Readability &amp; colour roles</summary><p id="contrast-note"></p><p>Accent colours highlight diagrams and small details. Text uses its specified ink or button-text colour. Physical outcomes still need explicit labels and human review.</p></details>
+      </aside>
+    </div>
+    <footer class="footer"><span>Choose the feeling. Keep the work clear.</span><span>Design concepts only · No theme has been applied to the application.</span></footer>
+    <p class="sr-only" id="palette-status" role="status" aria-live="polite"></p>
+    <noscript><p>This local preview needs JavaScript to compare and switch palettes. It does not connect to any service.</p></noscript>
+  </main>
+  <script>
+    const palettes = [
+      { id: 'porcelain-cobalt', name: 'Porcelain & Cobalt', mode: 'Light · crisp', description: 'Clear daylight surfaces. A confident blue.', detail: 'Porcelain & Cobalt pairs bright, neutral surfaces with a clear blue action colour.', canvas: '#F5F7FC', panel: '#FFFFFF', ink: '#14213D', muted: '#526179', primary: '#3154E9', primaryText: '#FFFFFF', accent: '#FFB547', mutedContrast: '5.86', buttonContrast: '5.87' },
+      { id: 'midnight-mint', name: 'Midnight & Mint', mode: 'Dark · precise', description: 'Deep blue-green. A fresh, luminous mint.', detail: 'Midnight & Mint keeps the workspace quiet and gives the next action a bright mint focus.', canvas: '#0B1518', panel: '#132429', ink: '#EFF8F4', muted: '#A6BFBA', primary: '#8CE8BE', primaryText: '#0B2820', accent: '#F8B86B', mutedContrast: '8.22', buttonContrast: '10.76' },
+      { id: 'aubergine-apricot', name: 'Aubergine & Apricot', mode: 'Dark · expressive', description: 'Rich plum surfaces. A warm apricot touch.', detail: 'Aubergine & Apricot gives the workspace a warm, creative character with clear peach actions.', canvas: '#1B1422', panel: '#2A2033', ink: '#FFF7F0', muted: '#C7B7CC', primary: '#F5AA80', primaryText: '#38202D', accent: '#C5B1FF', mutedContrast: '8.19', buttonContrast: '7.75' },
+      { id: 'forest-marigold', name: 'Forest & Marigold', mode: 'Light · tactile', description: 'Warm paper. Evergreen clarity. A golden highlight.', detail: 'Forest & Marigold feels at home in a workshop: warm paper, a grounded green action and small golden details.', canvas: '#F5F2E9', panel: '#FFFCF5', ink: '#183D33', muted: '#526A5E', primary: '#195D49', primaryText: '#FFFFFF', accent: '#E9B949', mutedContrast: '5.24', buttonContrast: '7.77' },
+    ];
+    const roles = [['canvas', 'Canvas'], ['panel', 'Panel'], ['ink', 'Ink'], ['muted', 'Muted'], ['primary', 'Primary'], ['primaryText', 'Button text'], ['accent', 'Accent']];
+    const arrow = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>';
+    const check = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4 4L19 6"/></svg>';
+    const theme = palette => roles.map(([key]) => `--${key === 'primaryText' ? 'primary-text' : key}:${palette[key]}`).join(';');
+    const grid = document.querySelector('#palette-grid');
+    grid.innerHTML = palettes.map((palette, index) => `<article class="palette-card" data-palette="${palette.id}" data-selected="${index === 0}" style="${theme(palette)}">
+      <div class="palette-heading"><span class="mode">${palette.mode}</span>${index === 0 ? '<span class="recommended">Recommended</span>' : ''}</div>
+      <h2>${palette.name}</h2><p class="palette-description">${palette.description}</p>
+      <div class="mini" aria-label="Illustrative CounterShot colour sample"><div class="mini-brand"><i aria-hidden="true"></i>CounterShot</div><div class="mini-flow" aria-label="Show, then review, then check"><span>Show</span>${arrow}<span>Review</span>${arrow}<span>Check</span></div><div class="mini-action"><strong>Make the next<br>move clear.</strong><span class="mini-cta" aria-hidden="true">Inspect photo ${arrow}</span></div></div>
+      <div class="swatches" aria-label="Palette colour roles">${roles.map(([key, label]) => `<div class="swatch"><div class="swatch-color" style="--swatch:${palette[key]}" aria-hidden="true"></div><span>${label}</span><code>${palette[key]}</code></div>`).join('')}</div>
+      <button class="choose" type="button" data-select="${palette.id}" aria-label="Preview ${palette.name} palette" aria-pressed="${index === 0}" aria-controls="preview"><span>${index === 0 ? 'Selected palette' : 'Preview this palette'}</span>${index === 0 ? check : arrow}</button>
+    </article>`).join('');
+    function selectPalette(id, scrollToPreview = false) {
+      const palette = palettes.find(item => item.id === id);
+      if (!palette) return;
+      document.querySelector('#preview').setAttribute('style', theme(palette));
+      document.querySelector('#selected-name').textContent = palette.name;
+      const description = document.querySelector('#preview-description');
+      description.textContent = '';
+      if (id === palettes[0].id) { const strong = document.createElement('strong'); strong.textContent = 'Recommended: '; description.append(strong); }
+      description.append(document.createTextNode(palette.detail));
+      document.querySelector('#contrast-note').textContent = `Minimum muted-text contrast across canvas and panel: ${palette.mutedContrast}:1. Primary-button text: ${palette.buttonContrast}:1. Body text and button text exceed 4.5:1.`;
+      document.querySelectorAll('.palette-card').forEach(card => { card.dataset.selected = String(card.dataset.palette === id); });
+      document.querySelectorAll('[data-select]').forEach(button => {
+        const selected = button.dataset.select === id;
+        button.setAttribute('aria-pressed', String(selected));
+        button.innerHTML = `<span>${selected ? 'Selected palette' : 'Preview this palette'}</span>${selected ? check : arrow}`;
+      });
+      document.querySelector('#palette-status').textContent = `Previewing ${palette.name}. This changes only the concept preview.`;
+      if (scrollToPreview && matchMedia('(max-width:1150px)').matches) document.querySelector('#live-panel').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+    }
+    grid.addEventListener('click', event => { const button = event.target.closest('[data-select]'); if (button) selectPalette(button.dataset.select, event.detail > 0); });
+    selectPalette(palettes[0].id);
+  </script>
+</body>
+</html>

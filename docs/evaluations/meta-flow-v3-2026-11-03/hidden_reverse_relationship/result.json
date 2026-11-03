@@ -1,0 +1,147 @@
+{
+  "caseId": "hidden_reverse_relationship",
+  "status": "response_received",
+  "verdict": {
+    "status": "pass",
+    "checks": [
+      {
+        "name": "current_strict_contract",
+        "passed": true
+      },
+      {
+        "name": "missing_evidence_does_not_authorize_movement",
+        "passed": true
+      }
+    ]
+  },
+  "assessment": {
+    "contractVersion": "camera-decision-v3",
+    "summary": "Front-only synthetic view shows W2, W8, W5 front segments. Rear return path is explicitly hidden behind opaque panel and remains unknown. Rear view required per step.",
+    "frameQuality": "clear",
+    "continuity": "first_view",
+    "observations": [
+      {
+        "id": "obs_w2",
+        "label": "W2 slot front entry",
+        "detail": "Vertical slot labeled W2 with blue webbing entering from left and turning down. Front face only.",
+        "box": {
+          "x": 0.22,
+          "y": 0.38,
+          "width": 0.07,
+          "height": 0.25
+        }
+      },
+      {
+        "id": "obs_w8_w5",
+        "label": "W8 to W5 front segment",
+        "detail": "Blue horizontal webbing segment spanning between W8 and W5 slots on front side. No rear path visible.",
+        "box": {
+          "x": 0.435,
+          "y": 0.385,
+          "width": 0.28,
+          "height": 0.24
+        }
+      },
+      {
+        "id": "obs_rear_note",
+        "label": "Rear return hidden notice",
+        "detail": "Text states the rear return segment is behind the opaque panel. Image header states FRONT SIDE ONLY and no rear view is shown.",
+        "box": {
+          "x": 0.13,
+          "y": 0.69,
+          "width": 0.6,
+          "height": 0.08
+        }
+      }
+    ],
+    "suggestedStepId": "inspect_reverse_path",
+    "decisionKind": "request_view",
+    "viewRequest": {
+      "instruction": "Expose and show the rear/underside view of the return segment behind the panel, keeping W2/W8/W5 slot labels and blue front-face mark visible.",
+      "whyNeeded": "Current frame is labeled FRONT SIDE ONLY and states no rear view is shown; unseen rear path cannot pass from front evidence.",
+      "resolves": "Whether the hidden W8 rear return segment follows the declared path and shows no fold or half-twist.",
+      "targetObservationIds": [
+        "obs_rear_note"
+      ]
+    },
+    "measurementRequest": null,
+    "actionProposal": null,
+    "operatorReview": null,
+    "hold": null,
+    "comparison": null,
+    "recovery": null,
+    "entityHypotheses": [],
+    "planChange": null
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae998e5ccbe5ecba56742c5",
+    "latencyMs": 11601,
+    "usage": [
+      {
+        "input_tokens": 6703,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 1108,
+        "output_tokens_details": {
+          "reasoning_tokens": 615
+        },
+        "total_tokens": 7811
+      }
+    ],
+    "promptVersion": "camera-decision-3.0.0",
+    "contextVersion": "camera-context-v3",
+    "responseIds": [
+      "resp_6ae998e5ccbe5ecba56742c5"
+    ],
+    "contextHash": "570e430f10b9878e75deded8d2c2626c35be901aa695736a90fe8c2c89608e41",
+    "toolExecutions": [],
+    "executionBudget": {
+      "version": "model-execution-v1",
+      "runId": "8a9ccb7e-e867-4986-9829-00449e347fdd",
+      "createdAt": 1793693914538,
+      "deadlineAt": 1793697514538,
+      "cancelledAt": null,
+      "limits": {
+        "maxInvocations": 1,
+        "maxOutputTokens": 6000,
+        "maxKnownTotalTokens": 400000,
+        "maxInputBytes": 33554432,
+        "maxToolExecutions": 0,
+        "maxToolsPerResponse": 0,
+        "maxDurationMs": 3600000
+      },
+      "invocations": [
+        {
+          "invocationId": "34b4d286-8d31-45d7-bd14-380cfda9c8e1:camera:0",
+          "parentInvocationId": null,
+          "role": "camera_observe_decide",
+          "route": "camera_reasoning",
+          "model": "muse-spark-1.3",
+          "contextHash": "ebf8ceac3802fa25853736e7f8a298bf280dc1c18cd530b640c041e47ec1b643",
+          "promptVersion": "camera-decision-3.0.0",
+          "schemaVersion": "3.0.0",
+          "toolVersion": "none",
+          "maxOutputTokens": 6000,
+          "inputBytes": 89925,
+          "reservedAt": 1793693914548,
+          "completedAt": 1793693926143,
+          "status": "responded",
+          "responseId": "resp_6ae998e5ccbe5ecba56742c5",
+          "usage": {
+            "inputTokens": 6703,
+            "outputTokens": 1108,
+            "totalTokens": 7811
+          },
+          "unknownReason": null
+        }
+      ],
+      "tools": []
+    },
+    "modelInvocationId": "34b4d286-8d31-45d7-bd14-380cfda9c8e1:camera:0"
+  },
+  "contextHash": "570e430f10b9878e75deded8d2c2626c35be901aa695736a90fe8c2c89608e41",
+  "physicalStatus": "untested",
+  "completedAt": "2026-11-03T08:18:46.146Z"
+}

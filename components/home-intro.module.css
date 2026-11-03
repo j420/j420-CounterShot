@@ -1,0 +1,48 @@
+.intro :global(.hero-card) { min-height: 320px; }
+.intro :global(.hero-copy h2) { margin-top: 18px; margin-bottom: 16px; }
+.intro :global(.hero-copy > p) { max-width: 390px; line-height: 1.7; }
+.intro :global(.hero-footnote) { font-size: 11px; line-height: 1.5; }
+.flow :global(.workflow-step h3) { font-size: 14px; }
+.flow :global(.workflow-step p) { font-size: 12px; line-height: 1.65; }
+.expectations { padding: 25px 0 2px; }
+.expectations h2 { font-size: 19px; letter-spacing: -.4px; margin: 0 0 17px; }
+.paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.path { display: flex; gap: 13px; min-width: 0; padding: 19px; background: #fcfcf7; border: 1px solid #e0e3d7; border-radius: 9px; }
+.pathIcon { flex: 0 0 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #eff2e7; color: #718464; }
+.path > div { min-width: 0; }
+.path h3 { margin: 0 0 9px; font-size: 14px; letter-spacing: -.1px; line-height: 1.5; }
+.path p { margin: 0; color: #63715a; font-size: 13px; line-height: 1.7; }
+.path p.pathHint { margin-top: 8px; font-size: 12px; color: #75816b; }
+.more { margin-top: 10px; color: #63715a; font-size: 12px; line-height: 1.7; }
+.more summary { cursor: pointer; padding: 8px 0; font-weight: 600; }
+.more ul { list-style: none; padding-left: 0; margin: 2px 0 10px; }
+.more li::before { content: "→"; margin-right: 8px; }
+.more li + li { margin-top: 5px; }
+.path .videoButton { margin-top: 12px; font-size: 12px; white-space: normal; min-height: 44px; text-align: left; }
+@media (max-width: 850px) {
+  .paths { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .intro :global(.hero-actions .button) { font-size: 12px; min-height: 44px; }
+}
+@media (max-width: 600px) {
+  .intro :global(.hero-card) { min-height: 0; }
+  .intro :global(.hero-copy) { padding: 24px 21px 0; }
+  .intro :global(.hero-copy h2) { margin-top: 16px; margin-bottom: 14px; font-size: 40px; letter-spacing: -1.7px; }
+  .intro :global(.hero-copy > p) { font-size: 14px; margin-bottom: 18px; }
+  .intro :global(.hero-actions) { align-items: stretch; gap: 8px; }
+  .intro :global(.hero-actions .button) { padding: 10px 12px; }
+  .intro :global(.hero-footnote) { margin-top: 15px; font-size: 11px; }
+  .intro :global(.hero-visual) { padding: 12px 18px 15px; }
+  .intro :global(.station-illustration) { max-height: 185px; }
+  .flow { grid-template-columns: minmax(0, 1fr); padding-top: 23px; padding-bottom: 18px; gap: 16px; }
+  .flow :global(.workflow-step) { display: flex; min-height: 60px; gap: 12px; }
+  .flow :global(.workflow-icon) { margin-top: 1px; margin-bottom: 0; width: 35px; height: 35px; }
+  .flow :global(.workflow-step h3) { font-size: 14px; margin-bottom: 4px; line-height: 1.4; }
+  .flow :global(.workflow-step p) { font-size: 12px; max-width: none; line-height: 1.6; }
+  .flow :global(.workflow-arrow) { display: block; position: absolute; left: 10px; top: 45px; margin: 0; transform: rotate(90deg); }
+  .expectations { padding-top: 23px; }
+  .expectations h2 { font-size: 18px; margin-bottom: 13px; }
+  .path { padding: 16px 14px; gap: 11px; }
+  .path h3 { font-size: 14px; }
+  .path .videoButton { width: 100%; padding-left: 11px; padding-right: 11px; justify-content: space-between; }
+  .more summary { min-height: 44px; padding-top: 11px; padding-bottom: 10px; }
+}

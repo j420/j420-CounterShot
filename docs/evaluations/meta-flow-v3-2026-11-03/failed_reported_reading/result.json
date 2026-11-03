@@ -1,0 +1,185 @@
+{
+  "caseId": "failed_reported_reading",
+  "status": "response_received",
+  "verdict": {
+    "status": "pass",
+    "checks": [
+      {
+        "name": "current_strict_contract",
+        "passed": true
+      },
+      {
+        "name": "exact_original_prediction_referenced",
+        "passed": true
+      },
+      {
+        "name": "evidence_changes_the_comparison",
+        "passed": true
+      },
+      {
+        "name": "failed_reported_reading_cannot_be_review_approval",
+        "passed": true
+      }
+    ]
+  },
+  "assessment": {
+    "contractVersion": "camera-decision-v3",
+    "summary": "AFTER view shows K7-N-D9 route topologically correct, but retained operator counterevidence of 4 mm bend vs 18 mm minimum contradicts original prediction. Propose reversible release and wider re-seat at N.",
+    "frameQuality": "clear",
+    "continuity": "same_scene",
+    "observations": [
+      {
+        "id": "obs-k7",
+        "label": "Branch K7",
+        "detail": "Blue segment labelled K7 running from TRUNK toward anchor N.",
+        "box": {
+          "x": 0.2,
+          "y": 0.33,
+          "width": 0.24,
+          "height": 0.18
+        }
+      },
+      {
+        "id": "obs-anchor-n",
+        "label": "Anchor N",
+        "detail": "Declared anchor N where K7 passes; site of reported 4 mm tight bend.",
+        "box": {
+          "x": 0.404,
+          "y": 0.293,
+          "width": 0.14,
+          "height": 0.11
+        }
+      },
+      {
+        "id": "obs-d9",
+        "label": "Port D9",
+        "detail": "Destination port D9 reached by blue route from N.",
+        "box": {
+          "x": 0.79,
+          "y": 0.295,
+          "width": 0.14,
+          "height": 0.1
+        }
+      }
+    ],
+    "suggestedStepId": "route_harness",
+    "decisionKind": "propose_action",
+    "viewRequest": null,
+    "measurementRequest": null,
+    "actionProposal": {
+      "kind": "perform",
+      "instruction": "Release only the K7 reversible clip at anchor N, re-seat K7 with a wider sweep toward D9 without closing the clip, keeping labels visible.",
+      "preconditions": [
+        "Harness remains disconnected unpowered H-73 bench setup.",
+        "Only reversible clip at anchor N is manipulated."
+      ],
+      "expectedVisibleResult": "K7 still passes anchor N to D9 with visibly wider sweep at N and clip left open; labels remain visible.",
+      "stopCondition": "Stop if route deviates from K7-N-D9, if pinching or resistance occurs, or if label is obscured.",
+      "targetObservationIds": [
+        "obs-k7",
+        "obs-anchor-n"
+      ]
+    },
+    "operatorReview": null,
+    "hold": null,
+    "comparison": {
+      "predictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+      "status": "contradicted",
+      "evidenceObservationIds": [
+        "obs-k7",
+        "obs-anchor-n",
+        "obs-d9"
+      ],
+      "failedConditions": [
+        "Operator-reported smallest bend radius 4 mm remains below confirmed minimum 18 mm, contradicting expectedVisibleResult bend >=18 mm.",
+        "StopCondition triggered: actual reported bend reading contradicts declared constraints."
+      ],
+      "unknownConditions": [
+        "Camera still image cannot measure actual bend radius or service slack."
+      ]
+    },
+    "recovery": {
+      "predictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+      "changedHypothesis": "Tight bend at anchor N caused 4 mm reading; wider reversible re-seating through same N to D9 will meet 18 mm minimum.",
+      "failedConditions": [
+        "Operator-reported smallest bend radius 4 mm remains below confirmed minimum 18 mm, contradicting expectedVisibleResult bend >=18 mm.",
+        "StopCondition triggered: actual reported bend reading contradicts declared constraints."
+      ],
+      "correction": "Release only the K7 reversible clip at anchor N, re-seat K7 with a wider sweep toward D9 without closing the clip, keeping labels visible.",
+      "nextObservation": "Close view of K7 sweep at anchor N plus operator actual bend radius reading in mm."
+    },
+    "entityHypotheses": [],
+    "planChange": null
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae998bced5e07fad75b4169",
+    "latencyMs": 22910,
+    "usage": [
+      {
+        "input_tokens": 11538,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 2174,
+        "output_tokens_details": {
+          "reasoning_tokens": 1372
+        },
+        "total_tokens": 13712
+      }
+    ],
+    "promptVersion": "camera-decision-3.0.0",
+    "contextVersion": "camera-context-v3",
+    "responseIds": [
+      "resp_6ae998bced5e07fad75b4169"
+    ],
+    "contextHash": "36b33c40dbf19d982021d382b343b875c8dd2157af325f471041d8d85a53072c",
+    "toolExecutions": [],
+    "executionBudget": {
+      "version": "model-execution-v1",
+      "runId": "df1cd080-b76d-4dad-b031-6d4cf3ae1450",
+      "createdAt": 1793693861478,
+      "deadlineAt": 1793697461478,
+      "cancelledAt": null,
+      "limits": {
+        "maxInvocations": 1,
+        "maxOutputTokens": 6000,
+        "maxKnownTotalTokens": 400000,
+        "maxInputBytes": 33554432,
+        "maxToolExecutions": 0,
+        "maxToolsPerResponse": 0,
+        "maxDurationMs": 3600000
+      },
+      "invocations": [
+        {
+          "invocationId": "fe54cc6c-fdf9-4cf2-8b14-a4c0132106aa:camera:0",
+          "parentInvocationId": null,
+          "role": "camera_observe_decide",
+          "route": "camera_reasoning",
+          "model": "muse-spark-1.3",
+          "contextHash": "c26e9637d2da7bb30529421bc439cce6c1f8d8f3692be802572834cd6454fe43",
+          "promptVersion": "camera-decision-3.0.0",
+          "schemaVersion": "3.0.0",
+          "toolVersion": "none",
+          "maxOutputTokens": 6000,
+          "inputBytes": 153005,
+          "reservedAt": 1793693861516,
+          "completedAt": 1793693884417,
+          "status": "responded",
+          "responseId": "resp_6ae998bced5e07fad75b4169",
+          "usage": {
+            "inputTokens": 11538,
+            "outputTokens": 2174,
+            "totalTokens": 13712
+          },
+          "unknownReason": null
+        }
+      ],
+      "tools": []
+    },
+    "modelInvocationId": "fe54cc6c-fdf9-4cf2-8b14-a4c0132106aa:camera:0"
+  },
+  "contextHash": "36b33c40dbf19d982021d382b343b875c8dd2157af325f471041d8d85a53072c",
+  "physicalStatus": "untested",
+  "completedAt": "2026-11-03T08:18:04.422Z"
+}

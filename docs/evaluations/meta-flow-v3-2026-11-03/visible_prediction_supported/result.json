@@ -1,0 +1,174 @@
+{
+  "caseId": "visible_prediction_supported",
+  "status": "response_received",
+  "verdict": {
+    "status": "pass",
+    "checks": [
+      {
+        "name": "current_strict_contract",
+        "passed": true
+      },
+      {
+        "name": "exact_original_prediction_referenced",
+        "passed": true
+      },
+      {
+        "name": "evidence_changes_the_comparison",
+        "passed": true
+      }
+    ]
+  },
+  "assessment": {
+    "contractVersion": "camera-decision-v3",
+    "summary": "Current view shows K7 routed TRUNK via N to D9, matching the predicted route. Alternative E-D6 is empty. Request operator identity confirmation.",
+    "frameQuality": "clear",
+    "continuity": "same_scene",
+    "observations": [
+      {
+        "id": "obs-trunk",
+        "label": "Trunk H-73",
+        "detail": "TRUNK label on left bench position.",
+        "box": {
+          "x": 0.07,
+          "y": 0.48,
+          "width": 0.135,
+          "height": 0.12
+        }
+      },
+      {
+        "id": "obs-k7",
+        "label": "Branch K7",
+        "detail": "Blue branch labelled K7 running from TRUNK to anchor N.",
+        "box": {
+          "x": 0.2,
+          "y": 0.33,
+          "width": 0.25,
+          "height": 0.18
+        }
+      },
+      {
+        "id": "obs-n",
+        "label": "Anchor N",
+        "detail": "Anchor N box intersected by K7 branch.",
+        "box": {
+          "x": 0.432,
+          "y": 0.295,
+          "width": 0.14,
+          "height": 0.11
+        }
+      },
+      {
+        "id": "obs-d9",
+        "label": "Destination D9",
+        "detail": "Destination D9 box reached by K7 branch through N. Alternative E and D6 boxes empty below.",
+        "box": {
+          "x": 0.818,
+          "y": 0.295,
+          "width": 0.14,
+          "height": 0.11
+        }
+      }
+    ],
+    "suggestedStepId": "identify_harness",
+    "decisionKind": "ready_for_operator_review",
+    "viewRequest": null,
+    "measurementRequest": null,
+    "actionProposal": null,
+    "operatorReview": {
+      "instruction": "Inspect the actual K7 branch label, anchor N and destination D9 in the current scene and confirm they match the declared H-73 map K7 via N to D9, and confirm harness is disconnected and unpowered.",
+      "expectedVisibleResult": "K7 is seen to pass through N and reach D9 with no label contradicting the map.",
+      "stopCondition": "Stop if any label is unreadable, duplicated, or contradicts the declared K7-N-D9 route.",
+      "targetObservationIds": [
+        "obs-k7",
+        "obs-n",
+        "obs-d9"
+      ]
+    },
+    "hold": null,
+    "comparison": {
+      "predictionId": "prediction:d1198b2c-07db-4c7a-9736-015481653c53",
+      "status": "supported_by_view",
+      "evidenceObservationIds": [
+        "obs-k7",
+        "obs-n",
+        "obs-d9"
+      ],
+      "failedConditions": [],
+      "unknownConditions": []
+    },
+    "recovery": null,
+    "entityHypotheses": [],
+    "planChange": null
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae998dabf1a4cdb4ec44623",
+    "latencyMs": 14442,
+    "usage": [
+      {
+        "input_tokens": 10422,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 1335,
+        "output_tokens_details": {
+          "reasoning_tokens": 731
+        },
+        "total_tokens": 11757
+      }
+    ],
+    "promptVersion": "camera-decision-3.0.0",
+    "contextVersion": "camera-context-v3",
+    "responseIds": [
+      "resp_6ae998dabf1a4cdb4ec44623"
+    ],
+    "contextHash": "0d00253b1db61818b7d7ff0615082cc7fb685e968ddbbb07d7ab347b3363c14d",
+    "toolExecutions": [],
+    "executionBudget": {
+      "version": "model-execution-v1",
+      "runId": "533b3446-d3ab-468b-a7d7-f99832175a53",
+      "createdAt": 1793693899983,
+      "deadlineAt": 1793697499983,
+      "cancelledAt": null,
+      "limits": {
+        "maxInvocations": 1,
+        "maxOutputTokens": 6000,
+        "maxKnownTotalTokens": 400000,
+        "maxInputBytes": 33554432,
+        "maxToolExecutions": 0,
+        "maxToolsPerResponse": 0,
+        "maxDurationMs": 3600000
+      },
+      "invocations": [
+        {
+          "invocationId": "19e21b72-f306-4d20-9d46-5471329bb885:camera:0",
+          "parentInvocationId": null,
+          "role": "camera_observe_decide",
+          "route": "camera_reasoning",
+          "model": "muse-spark-1.3",
+          "contextHash": "0541abdb7ebfdb14f16c24df5d2ae31e658d678a39581033f2e7fdf3cc1abd39",
+          "promptVersion": "camera-decision-3.0.0",
+          "schemaVersion": "3.0.0",
+          "toolVersion": "none",
+          "maxOutputTokens": 6000,
+          "inputBytes": 148468,
+          "reservedAt": 1793693900041,
+          "completedAt": 1793693914470,
+          "status": "responded",
+          "responseId": "resp_6ae998dabf1a4cdb4ec44623",
+          "usage": {
+            "inputTokens": 10422,
+            "outputTokens": 1335,
+            "totalTokens": 11757
+          },
+          "unknownReason": null
+        }
+      ],
+      "tools": []
+    },
+    "modelInvocationId": "19e21b72-f306-4d20-9d46-5471329bb885:camera:0"
+  },
+  "contextHash": "0d00253b1db61818b7d7ff0615082cc7fb685e968ddbbb07d7ab347b3363c14d",
+  "physicalStatus": "untested",
+  "completedAt": "2026-11-03T08:18:34.479Z"
+}

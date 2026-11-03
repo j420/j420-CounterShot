@@ -1,0 +1,738 @@
+{
+  "schemaVersion": 1,
+  "kind": "recorded_meta_api_contract_fixture",
+  "synthetic": true,
+  "physicalStatus": "untested",
+  "recordedAt": "2026-11-02T13:14:56.969Z",
+  "input": {
+    "goal": "Synthetic integration case: pack a notebook and loose card using only the confirmed right hand, fresh prepared carton and prepared insert supply.",
+    "facts": {
+      "itemLengthMm": 148,
+      "itemWidthMm": 105,
+      "itemHeightMm": 12,
+      "cartonLengthMm": 180,
+      "cartonWidthMm": 135,
+      "cartonHeightMm": 35,
+      "cartonOuterLengthMm": 194,
+      "cartonOuterWidthMm": 149,
+      "boardThicknessMm": 1.5,
+      "sheetWidthMm": 420,
+      "sheetHeightMm": 297,
+      "slotClearanceMm": 0.5,
+      "foldAllowanceMm": 0,
+      "workspaceWidthMm": 600,
+      "workspaceDepthMm": 450,
+      "reachWidthMm": 550,
+      "reachDepthMm": 400,
+      "activeHand": "right",
+      "allowedBodySupports": "None. Table and declared passive cardboard fixtures only.",
+      "closure": "Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.",
+      "notes": "Synthetic example: notebook-sized bundle including its accompanying card. All measurements and capabilities must be replaced and confirmed for a real project."
+    },
+    "observation": null,
+    "parent": null,
+    "feedback": null
+  },
+  "revalidation": {
+    "facts": {
+      "itemLengthMm": 148,
+      "itemWidthMm": 105,
+      "itemHeightMm": 12,
+      "cartonLengthMm": 180,
+      "cartonWidthMm": 135,
+      "cartonHeightMm": 35,
+      "cartonOuterLengthMm": 194,
+      "cartonOuterWidthMm": 149,
+      "boardThicknessMm": 1.5,
+      "sheetWidthMm": 420,
+      "sheetHeightMm": 297,
+      "slotClearanceMm": 0.5,
+      "foldAllowanceMm": 0,
+      "workspaceWidthMm": 600,
+      "workspaceDepthMm": 450,
+      "reachWidthMm": 550,
+      "reachDepthMm": 400,
+      "activeHand": "right",
+      "allowedBodySupports": "None. Table and declared passive cardboard fixtures only.",
+      "allowedOperations": [
+        "take",
+        "position",
+        "load",
+        "fold",
+        "close",
+        "release",
+        "reset"
+      ],
+      "closure": "Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.",
+      "notes": "Synthetic example: notebook-sized bundle including its accompanying card. All measurements and capabilities must be replaced and confirmed for a real project."
+    },
+    "note": "allowedOperations was introduced after this request began; revalidated locally against the explicit all-allowed synthetic profile. Do not claim this API request tested a restricted capability profile.",
+    "checks": [
+      {
+        "ruleId": "PHYS01",
+        "severity": "trial_required",
+        "message": "Static dimensions and hand-resource checks do not establish physical operation. This component assembly has not been physically admitted.",
+        "affectedIds": [
+          "insert",
+          "station"
+        ]
+      },
+      {
+        "ruleId": "PHYS02",
+        "severity": "trial_required",
+        "message": "Load a fresh carton from supply without helper preload.",
+        "affectedIds": [
+          "insert",
+          "station"
+        ]
+      },
+      {
+        "ruleId": "PHYS03",
+        "severity": "trial_required",
+        "message": "Exercise the full lid/flap opening and closure without contacting a stop or rail.",
+        "affectedIds": [
+          "insert",
+          "station"
+        ]
+      },
+      {
+        "ruleId": "PHYS04",
+        "severity": "trial_required",
+        "message": "Check fit, wall springback, retention and station stability with the actual material.",
+        "affectedIds": [
+          "insert",
+          "station"
+        ]
+      },
+      {
+        "ruleId": "PHYS05",
+        "severity": "trial_required",
+        "message": "Remove the finished parcel without trapped fixtures, snagging or an undeclared support.",
+        "affectedIds": [
+          "insert",
+          "station"
+        ]
+      },
+      {
+        "ruleId": "PHYS06",
+        "severity": "trial_required",
+        "message": "Reset the station and reach the next unused carton using only declared resources.",
+        "affectedIds": [
+          "insert",
+          "station"
+        ]
+      },
+      {
+        "ruleId": "PHYS07",
+        "severity": "trial_required",
+        "message": "Perform the actual closure (Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.) with the right hand and the declared permitted supports. Force, peeling, flap springback and simultaneous palm/finger actions remain unverified.",
+        "affectedIds": [
+          "carton"
+        ]
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Actual loading with real notebook, card, carton and insert is untested and must be tried by a person.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Hinged-lid flap sweep is assumed free of exterior corner stops; stops stay outside parcel and lid travel is untested.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Insert outer footprint 161x118 mm is assumed to fit inside 180x135 mm carton with room for card; actual fit untested.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Cardboard tray springback and wall stability at 15 mm walls are assumed to retain shape; untested.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Friction and stability of carton on station and insert in carton during one-handed loading are assumed sufficient; untested.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "One-handed hinged-lid tuck closure with contents supported on station is assumed possible; requires trial.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Finished carton removal between 20 mm corner stops without lifting interference is assumed possible; untested.",
+        "affectedIds": []
+      },
+      {
+        "ruleId": "ASSUME01",
+        "severity": "trial_required",
+        "message": "Station reset to clear state is assumed sufficient; no validation claimed.",
+        "affectedIds": []
+      }
+    ]
+  },
+  "output": {
+    "outcome": "candidate",
+    "title": "Notebook and card in tuck carton with low tray and corner stops",
+    "summary": "Pack notebook and card into existing hinged-lid carton using prepared 15 mm tray and low corner stops, right hand only.",
+    "rationale": "Lightweight notebook 148x105x12 in 180x135x35 top-opening carton allows low 15 mm retaining tray with 5 mm clearance for easy one-handed loading. Outer insert about 161x118 leaves side room for loose card. Corner stops at minimal 20 mm height stay outside parcel below carton top, leaving lid travel free and permitting extraction. Station at offset 100,100 centers carton at 217.5,195 within reach. Least burdensome cardboard-only proposal; all physical behavior untested.",
+    "missingFacts": [],
+    "program": {
+      "strategy": "corner_stops",
+      "insertClearanceMm": 5,
+      "wallHeightMm": 15,
+      "stopHeightMm": 20,
+      "offsetXMm": 100,
+      "offsetYMm": 100
+    },
+    "actions": [
+      {
+        "id": "a01_take_carton",
+        "label": "Take fresh carton from supply",
+        "objectId": "carton",
+        "operation": "take",
+        "dependsOn": [],
+        "hand": "active",
+        "holdAfter": "carton",
+        "supportAfter": null,
+        "xMm": 400,
+        "yMm": 100
+      },
+      {
+        "id": "a02_place_carton",
+        "label": "Position carton on station between corner stops",
+        "objectId": "carton",
+        "operation": "position",
+        "dependsOn": [
+          "a01_take_carton"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "station",
+        "xMm": 217.5,
+        "yMm": 195
+      },
+      {
+        "id": "a03_take_insert",
+        "label": "Take prepared insert from supply",
+        "objectId": "insert",
+        "operation": "take",
+        "dependsOn": [
+          "a02_place_carton"
+        ],
+        "hand": "active",
+        "holdAfter": "insert",
+        "supportAfter": null,
+        "xMm": 420,
+        "yMm": 120
+      },
+      {
+        "id": "a04_place_insert",
+        "label": "Position insert inside carton",
+        "objectId": "insert",
+        "operation": "position",
+        "dependsOn": [
+          "a03_take_insert"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "carton",
+        "xMm": 217.5,
+        "yMm": 195
+      },
+      {
+        "id": "a05_take_item",
+        "label": "Take notebook from supply",
+        "objectId": "item",
+        "operation": "take",
+        "dependsOn": [
+          "a04_place_insert"
+        ],
+        "hand": "active",
+        "holdAfter": "item",
+        "supportAfter": null,
+        "xMm": 400,
+        "yMm": 150
+      },
+      {
+        "id": "a06_load_item",
+        "label": "Load notebook into insert tray",
+        "objectId": "item",
+        "operation": "load",
+        "dependsOn": [
+          "a05_take_item"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "insert",
+        "xMm": 217.5,
+        "yMm": 195
+      },
+      {
+        "id": "a07_take_card",
+        "label": "Take loose card from supply",
+        "objectId": "card",
+        "operation": "take",
+        "dependsOn": [
+          "a06_load_item"
+        ],
+        "hand": "active",
+        "holdAfter": "card",
+        "supportAfter": null,
+        "xMm": 400,
+        "yMm": 180
+      },
+      {
+        "id": "a08_load_card",
+        "label": "Load card into carton alongside insert",
+        "objectId": "card",
+        "operation": "load",
+        "dependsOn": [
+          "a07_take_card"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "carton",
+        "xMm": 217.5,
+        "yMm": 195
+      },
+      {
+        "id": "a09_close_carton",
+        "label": "Close hinged lid and tuck with carton supported on station",
+        "objectId": "carton",
+        "operation": "close",
+        "dependsOn": [
+          "a08_load_card"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "station",
+        "xMm": 217.5,
+        "yMm": 195
+      },
+      {
+        "id": "a10_take_finished",
+        "label": "Take finished carton from station",
+        "objectId": "carton",
+        "operation": "take",
+        "dependsOn": [
+          "a09_close_carton"
+        ],
+        "hand": "active",
+        "holdAfter": "carton",
+        "supportAfter": null,
+        "xMm": 217.5,
+        "yMm": 195
+      },
+      {
+        "id": "a11_release_finished",
+        "label": "Release finished carton to finished area",
+        "objectId": "carton",
+        "operation": "release",
+        "dependsOn": [
+          "a10_take_finished"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "finished_area",
+        "xMm": 400,
+        "yMm": 300
+      },
+      {
+        "id": "a12_reset_station",
+        "label": "Reset station for next cycle",
+        "objectId": "station",
+        "operation": "reset",
+        "dependsOn": [
+          "a11_release_finished"
+        ],
+        "hand": "none",
+        "holdAfter": null,
+        "supportAfter": "table",
+        "xMm": 217.5,
+        "yMm": 195
+      }
+    ],
+    "assumptions": [
+      "Actual loading with real notebook, card, carton and insert is untested and must be tried by a person.",
+      "Hinged-lid flap sweep is assumed free of exterior corner stops; stops stay outside parcel and lid travel is untested.",
+      "Insert outer footprint 161x118 mm is assumed to fit inside 180x135 mm carton with room for card; actual fit untested.",
+      "Cardboard tray springback and wall stability at 15 mm walls are assumed to retain shape; untested.",
+      "Friction and stability of carton on station and insert in carton during one-handed loading are assumed sufficient; untested.",
+      "One-handed hinged-lid tuck closure with contents supported on station is assumed possible; requires trial.",
+      "Finished carton removal between 20 mm corner stops without lifting interference is assumed possible; untested.",
+      "Station reset to clear state is assumed sufficient; no validation claimed."
+    ],
+    "changes": []
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae88c9665b48ab62cea43ed",
+    "latencyMs": 83673,
+    "usage": [
+      {
+        "input_tokens": 2968,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 6283,
+        "output_tokens_details": {
+          "reasoning_tokens": 4595
+        },
+        "total_tokens": 9251
+      },
+      {
+        "input_tokens": 5598,
+        "input_tokens_details": {
+          "cached_tokens": 2929
+        },
+        "output_tokens": 4373,
+        "output_tokens_details": {
+          "reasoning_tokens": 2877
+        },
+        "total_tokens": 9971
+      },
+      {
+        "input_tokens": 7726,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 1647,
+        "output_tokens_details": {
+          "reasoning_tokens": 289
+        },
+        "total_tokens": 9373
+      }
+    ],
+    "promptVersion": "countershot-2026-11-02.1",
+    "responseIds": [
+      "resp_6ae88c6908d416c2e13d47e5",
+      "resp_6ae88c891d7c5aef6e67469c",
+      "resp_6ae88c9665b48ab62cea43ed"
+    ],
+    "toolExecutions": [
+      {
+        "responseId": "resp_6ae88c6908d416c2e13d47e5",
+        "callId": "call_60c18e2a-1282-4b73-b3e2-11f45417f2ee",
+        "toolName": "check_task_plan",
+        "result": {
+          "checks": [
+            {
+              "ruleId": "PLAN11",
+              "severity": "error",
+              "message": "The finished carton cannot be released before closure.",
+              "affectedIds": [
+                "a03_release_carton_station"
+              ]
+            },
+            {
+              "ruleId": "PLAN11",
+              "severity": "error",
+              "message": "Final parcel release must leave the hand free and the parcel in the finished area, clear of the station.",
+              "affectedIds": [
+                "a03_release_carton_station"
+              ]
+            },
+            {
+              "ruleId": "PLAN09",
+              "severity": "error",
+              "message": "Position fresh packaging in the station before loading contents.",
+              "affectedIds": [
+                "a08_load_item_insert"
+              ]
+            },
+            {
+              "ruleId": "PLAN18",
+              "severity": "error",
+              "message": "The retaining tray must be taken from supply and positioned inside the carton before it can support contents.",
+              "affectedIds": [
+                "a08_load_item_insert"
+              ]
+            },
+            {
+              "ruleId": "PLAN09",
+              "severity": "error",
+              "message": "Position fresh packaging in the station before loading contents.",
+              "affectedIds": [
+                "a10_load_card_carton"
+              ]
+            },
+            {
+              "ruleId": "PLAN10",
+              "severity": "error",
+              "message": "The supported closure method requires the carton to remain positioned in the station.",
+              "affectedIds": [
+                "a11_close_carton"
+              ]
+            },
+            {
+              "ruleId": "PLAN04",
+              "severity": "error",
+              "message": "An object cannot serve as its own receiving support.",
+              "affectedIds": [
+                "a14_reset_station"
+              ]
+            },
+            {
+              "ruleId": "PLAN13",
+              "severity": "error",
+              "message": "The cycle must start with fresh packaging taken from supply and transferred into the station.",
+              "affectedIds": [
+                "carton"
+              ]
+            },
+            {
+              "ruleId": "PLAN18",
+              "severity": "error",
+              "message": "Contents assigned to the tray cannot be counted inside the carton after the tray has been removed.",
+              "affectedIds": [
+                "insert"
+              ]
+            },
+            {
+              "ruleId": "PHYS01",
+              "severity": "trial_required",
+              "message": "Static dimensions and hand-resource checks do not establish physical operation. This component assembly has not been physically admitted.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS02",
+              "severity": "trial_required",
+              "message": "Load a fresh carton from supply without helper preload.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS03",
+              "severity": "trial_required",
+              "message": "Exercise the full lid/flap opening and closure without contacting a stop or rail.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS04",
+              "severity": "trial_required",
+              "message": "Check fit, wall springback, retention and station stability with the actual material.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS05",
+              "severity": "trial_required",
+              "message": "Remove the finished parcel without trapped fixtures, snagging or an undeclared support.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS06",
+              "severity": "trial_required",
+              "message": "Reset the station and reach the next unused carton using only declared resources.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS07",
+              "severity": "trial_required",
+              "message": "Perform the actual closure (Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.) with the right hand and the declared permitted supports. Force, peeling, flap springback and simultaneous palm/finger actions remain unverified.",
+              "affectedIds": [
+                "carton"
+              ]
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Actual loading with real notebook, card, carton and insert is untested and must be tried by a person.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Hinged-lid flap sweep is assumed free of exterior stops; stops stay outside parcel and lid travel is untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Insert outer footprint 161x118 mm is assumed to fit inside 180x135 mm carton with room for card; actual fit untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Cardboard tray springback and wall stability at 15 mm walls are assumed to retain shape; untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Friction and stability of carton on station and insert in carton during one-handed loading are assumed sufficient; untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "One-handed hinged-lid tuck closure with contents supported on station is assumed possible; requires trial.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Finished carton removal between 20 mm corner stops without lifting interference is assumed possible; untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Station reset to clear state is assumed sufficient; no validation claimed.",
+              "affectedIds": []
+            }
+          ],
+          "physicalStatus": "untested"
+        }
+      },
+      {
+        "responseId": "resp_6ae88c891d7c5aef6e67469c",
+        "callId": "call_526d8f43-b06b-45b2-82b9-e5c91deb0aa2",
+        "toolName": "check_task_plan",
+        "result": {
+          "checks": [
+            {
+              "ruleId": "PHYS01",
+              "severity": "trial_required",
+              "message": "Static dimensions and hand-resource checks do not establish physical operation. This component assembly has not been physically admitted.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS02",
+              "severity": "trial_required",
+              "message": "Load a fresh carton from supply without helper preload.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS03",
+              "severity": "trial_required",
+              "message": "Exercise the full lid/flap opening and closure without contacting a stop or rail.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS04",
+              "severity": "trial_required",
+              "message": "Check fit, wall springback, retention and station stability with the actual material.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS05",
+              "severity": "trial_required",
+              "message": "Remove the finished parcel without trapped fixtures, snagging or an undeclared support.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS06",
+              "severity": "trial_required",
+              "message": "Reset the station and reach the next unused carton using only declared resources.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS07",
+              "severity": "trial_required",
+              "message": "Perform the actual closure (Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.) with the right hand and the declared permitted supports. Force, peeling, flap springback and simultaneous palm/finger actions remain unverified.",
+              "affectedIds": [
+                "carton"
+              ]
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Actual loading with real notebook, card, carton and insert is untested and must be tried by a person.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Hinged-lid flap sweep is assumed free of exterior corner stops; stops stay outside parcel and lid travel is untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Insert outer footprint 161x118 mm is assumed to fit inside 180x135 mm carton with room for card; actual fit untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Cardboard tray springback and wall stability at 15 mm walls are assumed to retain shape; untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Friction and stability of carton on station and insert in carton during one-handed loading are assumed sufficient; untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "One-handed hinged-lid tuck closure with contents supported on station is assumed possible; requires trial.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Finished carton removal between 20 mm corner stops without lifting interference is assumed possible; untested.",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Station reset to clear state is assumed sufficient; no validation claimed.",
+              "affectedIds": []
+            }
+          ],
+          "physicalStatus": "untested"
+        }
+      }
+    ],
+    "uploadedFileIds": []
+  }
+}

@@ -1,0 +1,605 @@
+{
+  "case": {
+    "id": "failed_reported_reading",
+    "workflowId": "harness_routing",
+    "stepId": "route_harness",
+    "rule": "contradicted_prediction",
+    "purpose": "after"
+  },
+  "syntheticStageSelection": true,
+  "syntheticPriorHypothesis": true,
+  "realOperatorReports": false,
+  "syntheticOperatorReportsPresent": true,
+  "physicalRecordsCreated": false,
+  "physicalResult": "untested",
+  "originalPredictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+  "images": {
+    "current": {
+      "sha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+      "byteLength": 41581,
+      "svgSha256": "3586d10a62223b7b18d5d25876f82d15845fac5d53a54e8397451adea1d1704d"
+    },
+    "previous": {
+      "sha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+      "byteLength": 41581,
+      "svgSha256": "3586d10a62223b7b18d5d25876f82d15845fac5d53a54e8397451adea1d1704d"
+    }
+  },
+  "input": {
+    "runId": "df1cd080-b76d-4dad-b031-6d4cf3ae1450",
+    "turnId": "fe54cc6c-fdf9-4cf2-8b14-a4c0132106aa",
+    "workflow": {
+      "id": "harness_routing",
+      "iteration": 1,
+      "title": "Route a branching sensor harness",
+      "summary": "Keep branch identities, service loops and a declared routing graph consistent while the camera checks the next placement.",
+      "physicalScope": "Disconnected, unpowered prototype sensor harnesses on a labelled bench routing board. The product is physical routing, not electrical commissioning.",
+      "requiredFacts": [
+        {
+          "id": "scope_confirmed",
+          "label": "This is a disconnected, unpowered bench harness; I will use the declared operator resources.",
+          "kind": "boolean",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "target_port_map",
+          "label": "Declared branch-to-port map and required route through each anchor",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "branch_labels",
+          "label": "Actual labels on the trunk, every branch and every destination",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "minimum_bend_radius_mm",
+          "label": "Minimum bend radius from the actual cable specification",
+          "kind": "number",
+          "unit": "mm",
+          "min": 0.1,
+          "max": 1000
+        },
+        {
+          "id": "minimum_service_slack_mm",
+          "label": "Minimum free service-loop length required at each destination",
+          "kind": "number",
+          "unit": "mm",
+          "min": 0,
+          "max": 2000
+        },
+        {
+          "id": "retention_method",
+          "label": "Actual clips, combs or reversible ties available and how they are released",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "id": "operator_constraints",
+          "label": "Available hands, permitted manipulations and prohibited holding or body supports",
+          "kind": "text",
+          "unit": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "steps": [
+        {
+          "id": "identify_harness",
+          "title": "Ground the branch identities",
+          "instruction": "Show the labelled trunk, branch ends and destination map. Resolve one unreadable or conflicting identity before suggesting a route.",
+          "visibleChecks": [
+            "The active branch label and intended destination label are legible.",
+            "The referenced anchor or routing region is visible.",
+            "No visible label contradicts the declared port map."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "target_port_map",
+            "branch_labels",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_unpowered",
+              "label": "This is a disconnected, unpowered bench harness."
+            },
+            {
+              "id": "harness_identity",
+              "label": "I matched the actual branch labels to the declared destination map."
+            }
+          ],
+          "recoveryHint": "If an identity is hidden or duplicated, label and expose that branch; do not infer its destination from colour alone."
+        },
+        {
+          "id": "route_harness",
+          "title": "Route around the real constraints",
+          "measurements": [
+            {
+              "id": "observed_minimum_bend_radius_mm",
+              "label": "Smallest actual bend radius inspected",
+              "unit": "mm",
+              "factId": "minimum_bend_radius_mm",
+              "relation": "gte"
+            },
+            {
+              "id": "observed_minimum_service_slack_mm",
+              "label": "Smallest actual free service length inspected",
+              "unit": "mm",
+              "factId": "minimum_service_slack_mm",
+              "relation": "gte"
+            }
+          ],
+          "instruction": "Check one branch placement against the target path, the visible anchors and its neighbours. Ask for a ruler or specification reading when bend or slack limits matter.",
+          "visibleChecks": [
+            "The active branch follows its declared anchor order.",
+            "Its path is not visibly trapped under an unintended branch or clip.",
+            "The destination and free service loop remain identifiable."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "target_port_map",
+            "minimum_bend_radius_mm",
+            "minimum_service_slack_mm",
+            "retention_method",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_bend_measured",
+              "label": "I checked actual bends against the declared minimum radius."
+            },
+            {
+              "id": "harness_slack_measured",
+              "label": "I measured the required free service length at each destination."
+            }
+          ],
+          "recoveryHint": "Release only the affected reversible clip, expose the crossing and reroute that branch. Recheck bend and service length after moving an anchor."
+        },
+        {
+          "id": "retain_harness",
+          "title": "Retain without hiding a routing error",
+          "instruction": "Inspect the proposed retention point before closing its clip or tie. Keep labels and the service loop accessible for the final audit.",
+          "visibleChecks": [
+            "The next retention point is visible and corresponds to the declared method.",
+            "The active label is not concealed by the retention placement.",
+            "No visible branch crosses into an unintended destination."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "retention_method",
+            "operator_constraints",
+            "target_port_map"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_no_pinching",
+              "label": "I inspected for pinching and checked that the service loops remain free."
+            },
+            {
+              "id": "harness_retention_released",
+              "label": "I demonstrated the declared clip or tie can be released with permitted actions."
+            }
+          ],
+          "recoveryHint": "If retention moves a branch or hides its identity, reopen that point and repeat the affected routing and measurement checks."
+        },
+        {
+          "id": "audit_harness",
+          "title": "Audit the graph and release the work",
+          "measurements": [
+            {
+              "id": "observed_minimum_bend_radius_mm",
+              "label": "Smallest actual bend radius after retention",
+              "unit": "mm",
+              "factId": "minimum_bend_radius_mm",
+              "relation": "gte"
+            },
+            {
+              "id": "observed_minimum_service_slack_mm",
+              "label": "Smallest actual free service length after retention",
+              "unit": "mm",
+              "factId": "minimum_service_slack_mm",
+              "relation": "gte"
+            }
+          ],
+          "instruction": "Trace each labelled branch from trunk to destination. Treat unseen crossings and any required electrical tests as unresolved rather than guessing a pass.",
+          "visibleChecks": [
+            "The shown branch reaches the destination named in the map.",
+            "The routing board or support does not visibly trap the finished harness.",
+            "The inspected labels and service loops are still visible after retention."
+          ],
+          "requiredFactIds": [
+            "scope_confirmed",
+            "target_port_map",
+            "branch_labels",
+            "minimum_bend_radius_mm",
+            "minimum_service_slack_mm",
+            "retention_method",
+            "operator_constraints"
+          ],
+          "requiredConfirmations": [
+            {
+              "id": "harness_all_branches",
+              "label": "I traced every branch to its specified destination, including hidden sections."
+            },
+            {
+              "id": "harness_release_reset",
+              "label": "I released the routed harness and reset the board without undeclared help."
+            }
+          ],
+          "recoveryHint": "A wrong destination invalidates that branch audit. Reopen its retention, trace it physically and recheck all shared routing points."
+        }
+      ],
+      "completionChecks": [
+        "Every declared branch-to-port relationship is reviewed.",
+        "Bend and service-loop limits are checked by the operator.",
+        "Retention, release and reset use only declared resources."
+      ],
+      "limitations": [
+        "A camera cannot establish electrical continuity, insulation integrity or connector pinout.",
+        "Bend radius and free cable length require actual measurement.",
+        "A visible route is not evidence for an occluded branch segment."
+      ]
+    },
+    "session": {
+      "workflowId": "harness_routing",
+      "revision": 2,
+      "sceneEpoch": 1,
+      "currentStepId": "route_harness",
+      "status": "active",
+      "facts": {
+        "scope_confirmed": true,
+        "target_port_map": "Synthetic evaluation: H-73 branch K7 must pass anchor N and reach D9. The alternative anchor E and port D6 are not its route.",
+        "branch_labels": "Synthetic HARNESS H-73, TRUNK, K7, N, E, D9 and D6.",
+        "minimum_bend_radius_mm": 18,
+        "minimum_service_slack_mm": 20,
+        "retention_method": "Synthetic reversible open combs and reusable clips.",
+        "operator_constraints": "Hypothetical right-hand bench operation; no helper or body bracing."
+      },
+      "completedSteps": [],
+      "reviews": [
+        {
+          "stepId": "route_harness",
+          "turnId": "synthetic-earlier-reported-check",
+          "beforeTurnId": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+          "afterTurnId": null,
+          "confirmations": {
+            "harness_bend_measured": false,
+            "harness_slack_measured": false
+          },
+          "measurements": {
+            "observed_minimum_bend_radius_mm": 4,
+            "observed_minimum_service_slack_mm": 25
+          },
+          "notes": "Synthetic operator report: actual smallest bend radius was 4 mm against the confirmed minimum of 18 mm. That failed condition is still unresolved.",
+          "outcome": "failed",
+          "reviewedAt": "2026-11-03T08:17:40.436Z",
+          "facts": {
+            "scope_confirmed": true,
+            "target_port_map": "Synthetic evaluation: H-73 branch K7 must pass anchor N and reach D9. The alternative anchor E and port D6 are not its route.",
+            "branch_labels": "Synthetic HARNESS H-73, TRUNK, K7, N, E, D9 and D6.",
+            "minimum_bend_radius_mm": 18,
+            "minimum_service_slack_mm": 20,
+            "retention_method": "Synthetic reversible open combs and reusable clips.",
+            "operator_constraints": "Hypothetical right-hand bench operation; no helper or body bracing."
+          },
+          "sessionRevision": 2,
+          "sceneEpoch": 1
+        }
+      ],
+      "beforeTurn": {
+        "id": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+        "frameId": "3a8d988f-ed37-4a3f-b4ee-a642fc0e0b15",
+        "purpose": "before",
+        "source": "upload",
+        "capturedAt": null,
+        "receivedAt": "2026-11-03T08:17:40.436Z",
+        "revision": 1,
+        "stepId": "route_harness",
+        "frameSha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+        "assessment": {
+          "contractVersion": "camera-decision-v3",
+          "summary": "Synthetic prior model hypothesis for evaluation only.",
+          "frameQuality": "clear",
+          "continuity": "first_view",
+          "observations": [
+            {
+              "id": "branch-k7",
+              "label": "Branch K7",
+              "detail": "The K7 label in a synthetic rendered diagram.",
+              "box": {
+                "x": 0.24,
+                "y": 0.35,
+                "width": 0.18,
+                "height": 0.15
+              }
+            }
+          ],
+          "suggestedStepId": "route_harness",
+          "decisionKind": "propose_action",
+          "viewRequest": null,
+          "measurementRequest": null,
+          "actionProposal": {
+            "kind": "perform",
+            "instruction": "Place labelled K7 in the open anchor N toward port D9 without closing the clip.",
+            "preconditions": [
+              "The labelled disconnected H-73 harness is unchanged."
+            ],
+            "expectedVisibleResult": "K7 follows anchor N to D9 and the actual operator-reported bend radius is at least 18 mm.",
+            "stopCondition": "Stop if a label, route or actual reported bend reading contradicts the declared constraints.",
+            "targetObservationIds": [
+              "branch-k7"
+            ]
+          },
+          "operatorReview": null,
+          "hold": null,
+          "comparison": null,
+          "recovery": null,
+          "entityHypotheses": [],
+          "planChange": null
+        },
+        "decisionId": "decision:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+        "requestId": null,
+        "predictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2"
+      },
+      "latestTurn": {
+        "id": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+        "frameId": "3a8d988f-ed37-4a3f-b4ee-a642fc0e0b15",
+        "purpose": "before",
+        "source": "upload",
+        "capturedAt": null,
+        "receivedAt": "2026-11-03T08:17:40.436Z",
+        "revision": 1,
+        "stepId": "route_harness",
+        "frameSha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+        "assessment": {
+          "contractVersion": "camera-decision-v3",
+          "summary": "Synthetic prior model hypothesis for evaluation only.",
+          "frameQuality": "clear",
+          "continuity": "first_view",
+          "observations": [
+            {
+              "id": "branch-k7",
+              "label": "Branch K7",
+              "detail": "The K7 label in a synthetic rendered diagram.",
+              "box": {
+                "x": 0.24,
+                "y": 0.35,
+                "width": 0.18,
+                "height": 0.15
+              }
+            }
+          ],
+          "suggestedStepId": "route_harness",
+          "decisionKind": "propose_action",
+          "viewRequest": null,
+          "measurementRequest": null,
+          "actionProposal": {
+            "kind": "perform",
+            "instruction": "Place labelled K7 in the open anchor N toward port D9 without closing the clip.",
+            "preconditions": [
+              "The labelled disconnected H-73 harness is unchanged."
+            ],
+            "expectedVisibleResult": "K7 follows anchor N to D9 and the actual operator-reported bend radius is at least 18 mm.",
+            "stopCondition": "Stop if a label, route or actual reported bend reading contradicts the declared constraints.",
+            "targetObservationIds": [
+              "branch-k7"
+            ]
+          },
+          "operatorReview": null,
+          "hold": null,
+          "comparison": null,
+          "recovery": null,
+          "entityHypotheses": [],
+          "planChange": null
+        },
+        "decisionId": "decision:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+        "requestId": null,
+        "predictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2"
+      },
+      "guidance": {
+        "actionable": true,
+        "canConfirm": false,
+        "reasons": []
+      },
+      "createdAt": "2026-11-03T08:17:40.436Z",
+      "updatedAt": "2026-11-03T08:17:40.436Z",
+      "plan": {
+        "version": "camera-plan-v1",
+        "current": {
+          "id": "plan:df1cd080-b76d-4dad-b031-6d4cf3ae1450:scene:1",
+          "parentId": null,
+          "version": {
+            "runId": "df1cd080-b76d-4dad-b031-6d4cf3ae1450",
+            "factsHash": "4840c76de93b15bfc9c9493b8d5bde09dfdf1282dad4e22751154eb64e81db74",
+            "sceneEpoch": 1,
+            "stepId": "route_harness",
+            "revision": 1,
+            "planVersion": "plan:df1cd080-b76d-4dad-b031-6d4cf3ae1450:scene:1"
+          },
+          "mandatoryObligations": "{\"completionChecks\":[\"Every declared branch-to-port relationship is reviewed.\",\"Bend and service-loop limits are checked by the operator.\",\"Retention, release and reset use only declared resources.\"],\"limitations\":[\"A camera cannot establish electrical continuity, insulation integrity or connector pinout.\",\"Bend radius and free cable length require actual measurement.\",\"A visible route is not evidence for an occluded branch segment.\"],\"physicalScope\":\"Disconnected, unpowered prototype sensor harnesses on a labelled bench routing board. The product is physical routing, not electrical commissioning.\",\"requiredFacts\":[{\"id\":\"scope_confirmed\",\"kind\":\"boolean\",\"label\":\"This is a disconnected, unpowered bench harness; I will use the declared operator resources.\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"target_port_map\",\"kind\":\"text\",\"label\":\"Declared branch-to-port map and required route through each anchor\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"branch_labels\",\"kind\":\"text\",\"label\":\"Actual labels on the trunk, every branch and every destination\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"minimum_bend_radius_mm\",\"kind\":\"number\",\"label\":\"Minimum bend radius from the actual cable specification\",\"max\":1000,\"min\":0.1,\"unit\":\"mm\"},{\"id\":\"minimum_service_slack_mm\",\"kind\":\"number\",\"label\":\"Minimum free service-loop length required at each destination\",\"max\":2000,\"min\":0,\"unit\":\"mm\"},{\"id\":\"retention_method\",\"kind\":\"text\",\"label\":\"Actual clips, combs or reversible ties available and how they are released\",\"max\":null,\"min\":null,\"unit\":null},{\"id\":\"operator_constraints\",\"kind\":\"text\",\"label\":\"Available hands, permitted manipulations and prohibited holding or body supports\",\"max\":null,\"min\":null,\"unit\":null}],\"steps\":[{\"id\":\"identify_harness\",\"instruction\":\"Show the labelled trunk, branch ends and destination map. Resolve one unreadable or conflicting identity before suggesting a route.\",\"measurements\":[],\"requiredConfirmations\":[{\"id\":\"harness_unpowered\",\"label\":\"This is a disconnected, unpowered bench harness.\"},{\"id\":\"harness_identity\",\"label\":\"I matched the actual branch labels to the declared destination map.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"target_port_map\",\"branch_labels\",\"operator_constraints\"],\"visibleChecks\":[\"The active branch label and intended destination label are legible.\",\"The referenced anchor or routing region is visible.\",\"No visible label contradicts the declared port map.\"]},{\"id\":\"route_harness\",\"instruction\":\"Check one branch placement against the target path, the visible anchors and its neighbours. Ask for a ruler or specification reading when bend or slack limits matter.\",\"measurements\":[{\"factId\":\"minimum_bend_radius_mm\",\"id\":\"observed_minimum_bend_radius_mm\",\"label\":\"Smallest actual bend radius inspected\",\"relation\":\"gte\",\"unit\":\"mm\"},{\"factId\":\"minimum_service_slack_mm\",\"id\":\"observed_minimum_service_slack_mm\",\"label\":\"Smallest actual free service length inspected\",\"relation\":\"gte\",\"unit\":\"mm\"}],\"requiredConfirmations\":[{\"id\":\"harness_bend_measured\",\"label\":\"I checked actual bends against the declared minimum radius.\"},{\"id\":\"harness_slack_measured\",\"label\":\"I measured the required free service length at each destination.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"target_port_map\",\"minimum_bend_radius_mm\",\"minimum_service_slack_mm\",\"retention_method\",\"operator_constraints\"],\"visibleChecks\":[\"The active branch follows its declared anchor order.\",\"Its path is not visibly trapped under an unintended branch or clip.\",\"The destination and free service loop remain identifiable.\"]},{\"id\":\"retain_harness\",\"instruction\":\"Inspect the proposed retention point before closing its clip or tie. Keep labels and the service loop accessible for the final audit.\",\"measurements\":[],\"requiredConfirmations\":[{\"id\":\"harness_no_pinching\",\"label\":\"I inspected for pinching and checked that the service loops remain free.\"},{\"id\":\"harness_retention_released\",\"label\":\"I demonstrated the declared clip or tie can be released with permitted actions.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"retention_method\",\"operator_constraints\",\"target_port_map\"],\"visibleChecks\":[\"The next retention point is visible and corresponds to the declared method.\",\"The active label is not concealed by the retention placement.\",\"No visible branch crosses into an unintended destination.\"]},{\"id\":\"audit_harness\",\"instruction\":\"Trace each labelled branch from trunk to destination. Treat unseen crossings and any required electrical tests as unresolved rather than guessing a pass.\",\"measurements\":[{\"factId\":\"minimum_bend_radius_mm\",\"id\":\"observed_minimum_bend_radius_mm\",\"label\":\"Smallest actual bend radius after retention\",\"relation\":\"gte\",\"unit\":\"mm\"},{\"factId\":\"minimum_service_slack_mm\",\"id\":\"observed_minimum_service_slack_mm\",\"label\":\"Smallest actual free service length after retention\",\"relation\":\"gte\",\"unit\":\"mm\"}],\"requiredConfirmations\":[{\"id\":\"harness_all_branches\",\"label\":\"I traced every branch to its specified destination, including hidden sections.\"},{\"id\":\"harness_release_reset\",\"label\":\"I released the routed harness and reset the board without undeclared help.\"}],\"requiredFactIds\":[\"scope_confirmed\",\"target_port_map\",\"branch_labels\",\"minimum_bend_radius_mm\",\"minimum_service_slack_mm\",\"retention_method\",\"operator_constraints\"],\"visibleChecks\":[\"The shown branch reaches the destination named in the map.\",\"The routing board or support does not visibly trap the finished harness.\",\"The inspected labels and service loops are still visible after retention.\"]}],\"workflowId\":\"harness_routing\"}",
+          "substepsByPhase": {}
+        },
+        "history": [],
+        "proposals": [],
+        "approvals": []
+      },
+      "reasoning": {
+        "version": "camera-reasoning-v1",
+        "activePredictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+        "predictions": [
+          {
+            "id": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+            "turnId": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+            "parentPredictionId": null,
+            "version": {
+              "runId": "df1cd080-b76d-4dad-b031-6d4cf3ae1450",
+              "factsHash": "4840c76de93b15bfc9c9493b8d5bde09dfdf1282dad4e22751154eb64e81db74",
+              "sceneEpoch": 1,
+              "stepId": "route_harness",
+              "revision": 2,
+              "planVersion": "plan:df1cd080-b76d-4dad-b031-6d4cf3ae1450:scene:1"
+            },
+            "evidence": {
+              "turnId": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+              "frameId": "3a8d988f-ed37-4a3f-b4ee-a642fc0e0b15",
+              "sha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+              "observationIds": [
+                "branch-k7"
+              ]
+            },
+            "instruction": "Place labelled K7 in the open anchor N toward port D9 without closing the clip.",
+            "expectedVisibleResult": "K7 follows anchor N to D9 and the actual operator-reported bend radius is at least 18 mm.",
+            "stopCondition": "Stop if a label, route or actual reported bend reading contradicts the declared constraints.",
+            "targetObservationIds": [
+              "branch-k7"
+            ],
+            "targetObservations": [
+              {
+                "id": "branch-k7",
+                "label": "Branch K7",
+                "detail": "The K7 label in a synthetic rendered diagram.",
+                "box": {
+                  "x": 0.24,
+                  "y": 0.35,
+                  "width": 0.18,
+                  "height": 0.15
+                }
+              }
+            ],
+            "rootPredictionId": "prediction:ac4cf306-cd57-4672-be4f-d3d43d83f3f2"
+          }
+        ],
+        "comparisons": [],
+        "recoveries": [],
+        "entities": [],
+        "entityBindings": [],
+        "hypotheses": [],
+        "claims": [
+          {
+            "id": "claim:observation:ac4cf306-cd57-4672-be4f-d3d43d83f3f2:branch-k7",
+            "entityIds": [],
+            "statement": "Branch K7: The K7 label in a synthetic rendered diagram.",
+            "status": "supported_by_view",
+            "source": "model_hypothesis",
+            "version": {
+              "runId": "df1cd080-b76d-4dad-b031-6d4cf3ae1450",
+              "factsHash": "4840c76de93b15bfc9c9493b8d5bde09dfdf1282dad4e22751154eb64e81db74",
+              "sceneEpoch": 1,
+              "stepId": "route_harness",
+              "revision": 2,
+              "planVersion": "plan:df1cd080-b76d-4dad-b031-6d4cf3ae1450:scene:1"
+            },
+            "evidence": {
+              "turnId": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+              "frameId": "3a8d988f-ed37-4a3f-b4ee-a642fc0e0b15",
+              "sha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+              "observationIds": [
+                "branch-k7"
+              ]
+            },
+            "resolvedBy": null
+          }
+        ]
+      }
+    },
+    "frame": {
+      "id": "44f537cf-c58e-4482-ac9d-657517e8e1e5",
+      "sha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+      "purpose": "after",
+      "source": "upload",
+      "capturedAt": null,
+      "receivedAt": "2026-11-03T08:17:41.436Z",
+      "stepId": "route_harness",
+      "revision": 2
+    },
+    "framePath": "/tmp/countershot-flow-evaluation-v3-live/verification/meta-flow-live-1793693823687-3e3acce2/failed_reported_reading/current.png",
+    "execution": {
+      "budget": {
+        "version": "model-execution-v1",
+        "runId": "df1cd080-b76d-4dad-b031-6d4cf3ae1450",
+        "createdAt": 1793693861478,
+        "deadlineAt": 1793697461478,
+        "cancelledAt": null,
+        "limits": {
+          "maxInvocations": 1,
+          "maxOutputTokens": 6000,
+          "maxKnownTotalTokens": 400000,
+          "maxInputBytes": 33554432,
+          "maxToolExecutions": 0,
+          "maxToolsPerResponse": 0,
+          "maxDurationMs": 3600000
+        },
+        "invocations": [],
+        "tools": []
+      }
+    },
+    "operatorNote": "Synthetic rendered-bench evaluation only. The declared facts are test inputs, not measurements or a physical trial. Inspect the shown current scene and keep absent evidence unresolved.",
+    "previousFramePath": "/tmp/countershot-flow-evaluation-v3-live/verification/meta-flow-live-1793693823687-3e3acce2/failed_reported_reading/previous.png",
+    "comparison": {
+      "turnId": "ac4cf306-cd57-4672-be4f-d3d43d83f3f2",
+      "assessment": {
+        "contractVersion": "camera-decision-v3",
+        "summary": "Synthetic prior model hypothesis for evaluation only.",
+        "frameQuality": "clear",
+        "continuity": "first_view",
+        "observations": [
+          {
+            "id": "branch-k7",
+            "label": "Branch K7",
+            "detail": "The K7 label in a synthetic rendered diagram.",
+            "box": {
+              "x": 0.24,
+              "y": 0.35,
+              "width": 0.18,
+              "height": 0.15
+            }
+          }
+        ],
+        "suggestedStepId": "route_harness",
+        "decisionKind": "propose_action",
+        "viewRequest": null,
+        "measurementRequest": null,
+        "actionProposal": {
+          "kind": "perform",
+          "instruction": "Place labelled K7 in the open anchor N toward port D9 without closing the clip.",
+          "preconditions": [
+            "The labelled disconnected H-73 harness is unchanged."
+          ],
+          "expectedVisibleResult": "K7 follows anchor N to D9 and the actual operator-reported bend radius is at least 18 mm.",
+          "stopCondition": "Stop if a label, route or actual reported bend reading contradicts the declared constraints.",
+          "targetObservationIds": [
+            "branch-k7"
+          ]
+        },
+        "operatorReview": null,
+        "hold": null,
+        "comparison": null,
+        "recovery": null,
+        "entityHypotheses": [],
+        "planChange": null
+      },
+      "frame": {
+        "id": "3a8d988f-ed37-4a3f-b4ee-a642fc0e0b15",
+        "sha256": "c2a1d46310d7033c6a7cd04456e440ffada4b2717e35570f89c619b1db0ee0c5",
+        "purpose": "before",
+        "source": "upload",
+        "capturedAt": null,
+        "receivedAt": "2026-11-03T08:17:40.436Z",
+        "stepId": "route_harness",
+        "revision": 1
+      }
+    }
+  },
+  "expectationSha256": "32efcdc4a3d3faa0c43dfe8f0834a0df8a6f00150957ceead055bba555ee6fb9",
+  "preparedAt": "2026-11-03T08:17:41.511Z"
+}

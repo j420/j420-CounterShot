@@ -1,0 +1,173 @@
+{
+  "caseId": "replaced_workpiece",
+  "status": "response_received",
+  "verdict": {
+    "status": "pass",
+    "checks": [
+      {
+        "name": "current_strict_contract",
+        "passed": true
+      },
+      {
+        "name": "replacement_is_a_changed_scene",
+        "passed": true
+      },
+      {
+        "name": "changed_scene_has_no_action_or_review",
+        "passed": true
+      }
+    ]
+  },
+  "assessment": {
+    "contractVersion": "camera-decision-v3",
+    "summary": "Current diagram shows Z-88/Z2 via E-D6, contradicting declared H-73 K7 via N-D9. Changed workpiece identity blocks identify_harness; holding for correct setup.",
+    "frameQuality": "clear",
+    "continuity": "changed",
+    "observations": [
+      {
+        "id": "obs-title-z88",
+        "label": "Harness title Z-88",
+        "detail": "Title reads HARNESS Z-88, not declared H-73.",
+        "box": {
+          "x": 0.035,
+          "y": 0.21,
+          "width": 0.225,
+          "height": 0.07
+        }
+      },
+      {
+        "id": "obs-branch-z2",
+        "label": "Branch label Z2",
+        "detail": "Blue text Z2 near trunk, not declared K7.",
+        "box": {
+          "x": 0.25,
+          "y": 0.43,
+          "width": 0.05,
+          "height": 0.06
+        }
+      },
+      {
+        "id": "obs-anchor-n",
+        "label": "Anchor N empty",
+        "detail": "Anchor N label visible but empty with no branch through it.",
+        "box": {
+          "x": 0.433,
+          "y": 0.34,
+          "width": 0.135,
+          "height": 0.12
+        }
+      },
+      {
+        "id": "obs-route-e-d6",
+        "label": "Route via E to D6",
+        "detail": "Blue route runs TRUNK to E then to D6, matching declared non-route E to D6.",
+        "box": {
+          "x": 0.205,
+          "y": 0.52,
+          "width": 0.64,
+          "height": 0.18
+        }
+      }
+    ],
+    "suggestedStepId": "identify_harness",
+    "decisionKind": "hold",
+    "viewRequest": null,
+    "measurementRequest": null,
+    "actionProposal": null,
+    "operatorReview": null,
+    "hold": {
+      "reason": "Current view shows HARNESS Z-88 branch Z2 routed via E to D6, contradicting declared H-73 K7 via N to D9. Workpiece identity appears replaced; action cannot be authorized.",
+      "resumeWhen": "Resume when correct H-73 K7 harness is presented with legible trunk, branch, N and D9 labels, or operator confirms new identity and map."
+    },
+    "comparison": {
+      "predictionId": "prediction:33fb8437-e2be-47fc-9d03-eb253a4b3985",
+      "status": "contradicted",
+      "evidenceObservationIds": [
+        "obs-title-z88",
+        "obs-branch-z2",
+        "obs-anchor-n",
+        "obs-route-e-d6"
+      ],
+      "failedConditions": [
+        "HARNESS H-73 label not visible; Z-88 shown instead",
+        "Branch K7 not visible; Z2 shown instead",
+        "Branch passes anchor E to D6, not anchor N to D9"
+      ],
+      "unknownConditions": []
+    },
+    "recovery": null,
+    "entityHypotheses": [],
+    "planChange": null
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae998a4a58a749db3db4ebe",
+    "latencyMs": 19355,
+    "usage": [
+      {
+        "input_tokens": 10156,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 1830,
+        "output_tokens_details": {
+          "reasoning_tokens": 1184
+        },
+        "total_tokens": 11986
+      }
+    ],
+    "promptVersion": "camera-decision-3.0.0",
+    "contextVersion": "camera-context-v3",
+    "responseIds": [
+      "resp_6ae998a4a58a749db3db4ebe"
+    ],
+    "contextHash": "2fef0a058781b95bb32df21a1592edb428fc44e9f8d6d5be47b33f628a3ed950",
+    "toolExecutions": [],
+    "executionBudget": {
+      "version": "model-execution-v1",
+      "runId": "71a3bb31-9ef5-4eba-9ea5-6ecc1e91a15f",
+      "createdAt": 1793693842044,
+      "deadlineAt": 1793697442044,
+      "cancelledAt": null,
+      "limits": {
+        "maxInvocations": 1,
+        "maxOutputTokens": 6000,
+        "maxKnownTotalTokens": 400000,
+        "maxInputBytes": 33554432,
+        "maxToolExecutions": 0,
+        "maxToolsPerResponse": 0,
+        "maxDurationMs": 3600000
+      },
+      "invocations": [
+        {
+          "invocationId": "2f4b594e-01d7-4928-a92c-f5f8689a2ddc:camera:0",
+          "parentInvocationId": null,
+          "role": "camera_observe_decide",
+          "route": "camera_reasoning",
+          "model": "muse-spark-1.3",
+          "contextHash": "b9731392f2726c2a0c88483f14d7d16fc5f96e4055354b72b76041c52567a941",
+          "promptVersion": "camera-decision-3.0.0",
+          "schemaVersion": "3.0.0",
+          "toolVersion": "none",
+          "maxOutputTokens": 6000,
+          "inputBytes": 148063,
+          "reservedAt": 1793693842085,
+          "completedAt": 1793693861433,
+          "status": "responded",
+          "responseId": "resp_6ae998a4a58a749db3db4ebe",
+          "usage": {
+            "inputTokens": 10156,
+            "outputTokens": 1830,
+            "totalTokens": 11986
+          },
+          "unknownReason": null
+        }
+      ],
+      "tools": []
+    },
+    "modelInvocationId": "2f4b594e-01d7-4928-a92c-f5f8689a2ddc:camera:0"
+  },
+  "contextHash": "2fef0a058781b95bb32df21a1592edb428fc44e9f8d6d5be47b33f628a3ed950",
+  "physicalStatus": "untested",
+  "completedAt": "2026-11-03T08:17:41.435Z"
+}

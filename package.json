@@ -1,0 +1,40 @@
+{
+  "name": "countershot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently --kill-others -n web,worker \"next dev --hostname 0.0.0.0\" \"npm run worker\"",
+    "dev:web": "next dev --hostname 0.0.0.0",
+    "worker": "node --env-file-if-exists=.env.local --import tsx src/jobs/worker.ts",
+    "build": "next build",
+    "start": "concurrently --kill-others -n web,worker \"next start --hostname 0.0.0.0\" \"npm run worker\"",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test --test-isolation=none tests/*.test.ts",
+    "smoke:meta": "node --env-file-if-exists=.env.local --import tsx scripts/meta-smoke.ts",
+    "smoke:workflow": "node --env-file-if-exists=.env.local --import tsx scripts/workflow-smoke.ts",
+    "test:browser": "playwright test tests/browser.spec.ts tests/camera-browser.spec.ts --workers=1",
+    "smoke:camera": "node --env-file-if-exists=.env.local --import tsx scripts/camera-smoke.ts"
+  },
+  "dependencies": {
+    "lucide-react": "^1.66.0",
+    "next": "^16.4.4",
+    "openai": "^7.47.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "undici": "^8.12.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "concurrently": "^10.0.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

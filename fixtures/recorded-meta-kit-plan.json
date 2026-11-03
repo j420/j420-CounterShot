@@ -1,0 +1,1342 @@
+{
+  "schemaVersion": 2,
+  "kind": "recorded_meta_api_contract_fixture",
+  "synthetic": true,
+  "physicalStatus": "untested",
+  "recordedAt": "2026-11-02T13:50:46.377Z",
+  "input": {
+    "goal": "Synthetic contract fixture: fulfil a small electronics repair kit from the confirmed quantities of screws, washers, spacers and grommets, keeping each group in its own matching labelled compartment. Use only the confirmed right hand, measured complete-group envelopes and declared supplies. Include staged local compartment closure, final carton closure, extraction and reset. No physical success or ESD/electrical protection is asserted.",
+    "facts": {
+      "workflow": "electronics_kit",
+      "itemLengthMm": null,
+      "itemWidthMm": null,
+      "itemHeightMm": null,
+      "cartonLengthMm": 130,
+      "cartonWidthMm": 110,
+      "cartonHeightMm": 35,
+      "cartonOuterLengthMm": 144,
+      "cartonOuterWidthMm": 124,
+      "boardThicknessMm": 1.5,
+      "sheetWidthMm": 420,
+      "sheetHeightMm": 297,
+      "slotClearanceMm": 0.5,
+      "foldAllowanceMm": 0,
+      "workspaceWidthMm": 600,
+      "workspaceDepthMm": 450,
+      "reachWidthMm": 550,
+      "reachDepthMm": 400,
+      "activeHand": "right",
+      "allowedBodySupports": "None. Table and declared passive cardboard fixtures only.",
+      "allowedOperations": [
+        "take",
+        "position",
+        "load",
+        "fold",
+        "close",
+        "release",
+        "reset"
+      ],
+      "kitComponents": [
+        {
+          "id": "screws",
+          "label": "Screws",
+          "requiredCount": 4,
+          "bundleLengthMm": 35,
+          "bundleWidthMm": 25,
+          "bundleHeightMm": 8
+        },
+        {
+          "id": "washers",
+          "label": "Washers",
+          "requiredCount": 4,
+          "bundleLengthMm": 30,
+          "bundleWidthMm": 25,
+          "bundleHeightMm": 6
+        },
+        {
+          "id": "spacers",
+          "label": "Spacers",
+          "requiredCount": 2,
+          "bundleLengthMm": 30,
+          "bundleWidthMm": 25,
+          "bundleHeightMm": 12
+        },
+        {
+          "id": "grommets",
+          "label": "Grommets",
+          "requiredCount": 2,
+          "bundleLengthMm": 35,
+          "bundleWidthMm": 30,
+          "bundleHeightMm": 10
+        }
+      ],
+      "closure": "Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.",
+      "notes": "Synthetic one-handed repair-kit fulfilment. Each inert mechanical component starts loose in separately labelled bulk supply. The maker supplies one fresh pre-erected open carton and a prepared EMPTY/open four-cell insert; no parts are pre-counted or loaded by a helper. Each group envelope is the measured envelope of the exact target quantity, not a single part multiplied. An appropriately sized inventory slip is supplied. Replace and confirm all example measurements before a real build. No ESD or electrical-protection claim."
+    },
+    "observation": null,
+    "parent": null,
+    "feedback": null
+  },
+  "output": {
+    "outcome": "candidate",
+    "title": "Electronics repair kit 2x2 staged closure candidate",
+    "summary": "One-handed 2x2 electronics repair-kit fulfilment: fresh open carton to stops, empty 4-cell insert inside, 12 unrolled single-piece loads to matching labelled compartments (screws 4, washers 4, spacers 2, grommets 2) with staged local closures, inventory slip, outer hinged-lid tuck closure, finished-carton extraction to finished area and station reset. No physical success or ESD claim.",
+    "rationale": "Least-burdensome 2x2 hypothesis using measured complete-group envelopes: position pre-erected carton on corner stops, drop in prepared empty 4-cell insert, then unrolled single-piece take/load pairs for 4+4+2+2 with immediate local close after each exact group to limit exposure, then inventory slip, outer tuck close only after all counts and all four local closes, extract and reset last. All targets use checker-resolved carton and well centres. No batch counting, no mixing, right-hand only. All physical closure, rolling, segregation and extraction remain trials.",
+    "missingFacts": [],
+    "program": {
+      "strategy": "corner_stops",
+      "insertClearanceMm": 2,
+      "wallHeightMm": 15,
+      "stopHeightMm": 15,
+      "offsetXMm": 50,
+      "offsetYMm": 50,
+      "kitLayout": {
+        "columns": 2,
+        "cellOrder": [
+          "screws",
+          "washers",
+          "spacers",
+          "grommets"
+        ],
+        "cellClearanceMm": 3,
+        "dividerHeightMm": 15
+      }
+    },
+    "actions": [
+      {
+        "id": "a01",
+        "label": "Take fresh pre-erected open carton from supply",
+        "objectId": "carton",
+        "operation": "take",
+        "dependsOn": [],
+        "hand": "active",
+        "holdAfter": "carton",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a02",
+        "label": "Position open carton on station against corner stops",
+        "objectId": "carton",
+        "operation": "position",
+        "dependsOn": [
+          "a01"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "station",
+        "xMm": 142.5,
+        "yMm": 132.5,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a03",
+        "label": "Take prepared empty open 4-cell insert from supply",
+        "objectId": "insert",
+        "operation": "take",
+        "dependsOn": [
+          "a02"
+        ],
+        "hand": "active",
+        "holdAfter": "insert",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 60,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a04",
+        "label": "Position empty insert inside open carton",
+        "objectId": "insert",
+        "operation": "position",
+        "dependsOn": [
+          "a03"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "carton",
+        "xMm": 142.5,
+        "yMm": 132.5,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a05",
+        "label": "Take screws 1 of 4 from labelled bulk supply",
+        "objectId": "screws",
+        "operation": "take",
+        "dependsOn": [
+          "a04"
+        ],
+        "hand": "active",
+        "holdAfter": "screws",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a06",
+        "label": "Load screws 1 of 4 to matching compartment",
+        "objectId": "screws",
+        "operation": "load",
+        "dependsOn": [
+          "a05"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_screws",
+        "xMm": 120.25,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a07",
+        "label": "Take screws 2 of 4 from labelled bulk supply",
+        "objectId": "screws",
+        "operation": "take",
+        "dependsOn": [
+          "a06"
+        ],
+        "hand": "active",
+        "holdAfter": "screws",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a08",
+        "label": "Load screws 2 of 4 to matching compartment",
+        "objectId": "screws",
+        "operation": "load",
+        "dependsOn": [
+          "a07"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_screws",
+        "xMm": 120.25,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a09",
+        "label": "Take screws 3 of 4 from labelled bulk supply",
+        "objectId": "screws",
+        "operation": "take",
+        "dependsOn": [
+          "a08"
+        ],
+        "hand": "active",
+        "holdAfter": "screws",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a10",
+        "label": "Load screws 3 of 4 to matching compartment",
+        "objectId": "screws",
+        "operation": "load",
+        "dependsOn": [
+          "a09"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_screws",
+        "xMm": 120.25,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a11",
+        "label": "Take screws 4 of 4 from labelled bulk supply",
+        "objectId": "screws",
+        "operation": "take",
+        "dependsOn": [
+          "a10"
+        ],
+        "hand": "active",
+        "holdAfter": "screws",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a12",
+        "label": "Load screws 4 of 4 to matching compartment",
+        "objectId": "screws",
+        "operation": "load",
+        "dependsOn": [
+          "a11"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_screws",
+        "xMm": 120.25,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a13",
+        "label": "Close screws compartment flap",
+        "objectId": "compartment_screws",
+        "operation": "close",
+        "dependsOn": [
+          "a12"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "insert",
+        "xMm": 120.25,
+        "yMm": 112.75,
+        "quantity": null,
+        "compartmentId": "screws"
+      },
+      {
+        "id": "a14",
+        "label": "Take washers 1 of 4 from labelled bulk supply",
+        "objectId": "washers",
+        "operation": "take",
+        "dependsOn": [
+          "a13"
+        ],
+        "hand": "active",
+        "holdAfter": "washers",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a15",
+        "label": "Load washers 1 of 4 to matching compartment",
+        "objectId": "washers",
+        "operation": "load",
+        "dependsOn": [
+          "a14"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_washers",
+        "xMm": 164.75,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a16",
+        "label": "Take washers 2 of 4 from labelled bulk supply",
+        "objectId": "washers",
+        "operation": "take",
+        "dependsOn": [
+          "a15"
+        ],
+        "hand": "active",
+        "holdAfter": "washers",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a17",
+        "label": "Load washers 2 of 4 to matching compartment",
+        "objectId": "washers",
+        "operation": "load",
+        "dependsOn": [
+          "a16"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_washers",
+        "xMm": 164.75,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a18",
+        "label": "Take washers 3 of 4 from labelled bulk supply",
+        "objectId": "washers",
+        "operation": "take",
+        "dependsOn": [
+          "a17"
+        ],
+        "hand": "active",
+        "holdAfter": "washers",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a19",
+        "label": "Load washers 3 of 4 to matching compartment",
+        "objectId": "washers",
+        "operation": "load",
+        "dependsOn": [
+          "a18"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_washers",
+        "xMm": 164.75,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a20",
+        "label": "Take washers 4 of 4 from labelled bulk supply",
+        "objectId": "washers",
+        "operation": "take",
+        "dependsOn": [
+          "a19"
+        ],
+        "hand": "active",
+        "holdAfter": "washers",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a21",
+        "label": "Load washers 4 of 4 to matching compartment",
+        "objectId": "washers",
+        "operation": "load",
+        "dependsOn": [
+          "a20"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_washers",
+        "xMm": 164.75,
+        "yMm": 112.75,
+        "quantity": 1,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a22",
+        "label": "Close washers compartment flap",
+        "objectId": "compartment_washers",
+        "operation": "close",
+        "dependsOn": [
+          "a21"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "insert",
+        "xMm": 164.75,
+        "yMm": 112.75,
+        "quantity": null,
+        "compartmentId": "washers"
+      },
+      {
+        "id": "a23",
+        "label": "Take spacers 1 of 2 from labelled bulk supply",
+        "objectId": "spacers",
+        "operation": "take",
+        "dependsOn": [
+          "a22"
+        ],
+        "hand": "active",
+        "holdAfter": "spacers",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "spacers"
+      },
+      {
+        "id": "a24",
+        "label": "Load spacers 1 of 2 to matching compartment",
+        "objectId": "spacers",
+        "operation": "load",
+        "dependsOn": [
+          "a23"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_spacers",
+        "xMm": 120.25,
+        "yMm": 149.75,
+        "quantity": 1,
+        "compartmentId": "spacers"
+      },
+      {
+        "id": "a25",
+        "label": "Take spacers 2 of 2 from labelled bulk supply",
+        "objectId": "spacers",
+        "operation": "take",
+        "dependsOn": [
+          "a24"
+        ],
+        "hand": "active",
+        "holdAfter": "spacers",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "spacers"
+      },
+      {
+        "id": "a26",
+        "label": "Load spacers 2 of 2 to matching compartment",
+        "objectId": "spacers",
+        "operation": "load",
+        "dependsOn": [
+          "a25"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_spacers",
+        "xMm": 120.25,
+        "yMm": 149.75,
+        "quantity": 1,
+        "compartmentId": "spacers"
+      },
+      {
+        "id": "a27",
+        "label": "Close spacers compartment flap",
+        "objectId": "compartment_spacers",
+        "operation": "close",
+        "dependsOn": [
+          "a26"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "insert",
+        "xMm": 120.25,
+        "yMm": 149.75,
+        "quantity": null,
+        "compartmentId": "spacers"
+      },
+      {
+        "id": "a28",
+        "label": "Take grommets 1 of 2 from labelled bulk supply",
+        "objectId": "grommets",
+        "operation": "take",
+        "dependsOn": [
+          "a27"
+        ],
+        "hand": "active",
+        "holdAfter": "grommets",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "grommets"
+      },
+      {
+        "id": "a29",
+        "label": "Load grommets 1 of 2 to matching compartment",
+        "objectId": "grommets",
+        "operation": "load",
+        "dependsOn": [
+          "a28"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_grommets",
+        "xMm": 164.75,
+        "yMm": 149.75,
+        "quantity": 1,
+        "compartmentId": "grommets"
+      },
+      {
+        "id": "a30",
+        "label": "Take grommets 2 of 2 from labelled bulk supply",
+        "objectId": "grommets",
+        "operation": "take",
+        "dependsOn": [
+          "a29"
+        ],
+        "hand": "active",
+        "holdAfter": "grommets",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": 1,
+        "compartmentId": "grommets"
+      },
+      {
+        "id": "a31",
+        "label": "Load grommets 2 of 2 to matching compartment",
+        "objectId": "grommets",
+        "operation": "load",
+        "dependsOn": [
+          "a30"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "compartment_grommets",
+        "xMm": 164.75,
+        "yMm": 149.75,
+        "quantity": 1,
+        "compartmentId": "grommets"
+      },
+      {
+        "id": "a32",
+        "label": "Close grommets compartment flap",
+        "objectId": "compartment_grommets",
+        "operation": "close",
+        "dependsOn": [
+          "a31"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "insert",
+        "xMm": 164.75,
+        "yMm": 149.75,
+        "quantity": null,
+        "compartmentId": "grommets"
+      },
+      {
+        "id": "a33",
+        "label": "Take inventory slip from supply",
+        "objectId": "card",
+        "operation": "take",
+        "dependsOn": [
+          "a32"
+        ],
+        "hand": "active",
+        "holdAfter": "card",
+        "supportAfter": "supply",
+        "xMm": 40,
+        "yMm": 40,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a34",
+        "label": "Load inventory slip into carton",
+        "objectId": "card",
+        "operation": "load",
+        "dependsOn": [
+          "a33"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "carton",
+        "xMm": 142.5,
+        "yMm": 132.5,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a35",
+        "label": "Close outer hinged-lid tuck carton",
+        "objectId": "carton",
+        "operation": "close",
+        "dependsOn": [
+          "a34"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "station",
+        "xMm": 142.5,
+        "yMm": 132.5,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a36",
+        "label": "Take finished closed carton from station",
+        "objectId": "carton",
+        "operation": "take",
+        "dependsOn": [
+          "a35"
+        ],
+        "hand": "active",
+        "holdAfter": "carton",
+        "supportAfter": "station",
+        "xMm": 142.5,
+        "yMm": 132.5,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a37",
+        "label": "Release finished carton to finished area",
+        "objectId": "carton",
+        "operation": "release",
+        "dependsOn": [
+          "a36"
+        ],
+        "hand": "active",
+        "holdAfter": null,
+        "supportAfter": "finished_area",
+        "xMm": 400,
+        "yMm": 300,
+        "quantity": null,
+        "compartmentId": null
+      },
+      {
+        "id": "a38",
+        "label": "Reset station for next kit",
+        "objectId": "station",
+        "operation": "reset",
+        "dependsOn": [
+          "a37"
+        ],
+        "hand": "none",
+        "holdAfter": null,
+        "supportAfter": "table",
+        "xMm": 142.5,
+        "yMm": 132.5,
+        "quantity": null,
+        "compartmentId": null
+      }
+    ],
+    "assumptions": [
+      "Fresh carton supplied pre-erected OPEN; no helper preload.",
+      "Insert supplied prepared, assembled, EMPTY and OPEN 4-cell; no parts pre-counted or preloaded.",
+      "Each kitComponent bundle envelope is measured complete-quantity envelope, not single-part multiplied.",
+      "Each inert part starts loose in separately labelled bulk supply; inventory slip appropriately sized and supplied.",
+      "Corner-stop fixtures stay outside parcel and leave lid/flap closure and extraction access.",
+      "Right hand only; table plus declared passive cardboard fixtures only, no other body support.",
+      "2x2 cell order screws/washers top row, spacers/grommets bottom row with 3mm cell clearance and 15mm divider height is a dimensional hypothesis.",
+      "One-handed local hinged/tuck flap closure and outer hinged-lid tuck closure force, springback and finger actions are untested.",
+      "Tiny-part rolling, escape, inter-cell mixing, label readability/matching and exact-count inspection are untested.",
+      "Human reviewer must inspect real counts, segregation, label matching and all four local closures; video/model cannot certify occluded count.",
+      "Finished-parcel extraction without snagging, station stability, and reset reach using only declared resources are untested.",
+      "No ESD, electrical safety, compatibility, shipping protection or repair-performance claim is made.",
+      "Benefit versus simple labelled commercial organiser requires matched physical comparison with equal preparation; no superiority claimed."
+    ],
+    "changes": [
+      "Repaired reset support to table to avoid self-support.",
+      "Repaired all carton and cell targets to checker-resolved geometry: carton 142.5,132.5 and four well centres/bounds."
+    ]
+  },
+  "trace": {
+    "model": "muse-spark-1.3",
+    "providerResponseId": "resp_6ae8952c17327627dc3e43e9",
+    "latencyMs": 119838,
+    "usage": [
+      {
+        "input_tokens": 4491,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 8784,
+        "output_tokens_details": {
+          "reasoning_tokens": 5719
+        },
+        "total_tokens": 13275
+      },
+      {
+        "input_tokens": 9516,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 6762,
+        "output_tokens_details": {
+          "reasoning_tokens": 2698
+        },
+        "total_tokens": 16278
+      },
+      {
+        "input_tokens": 14623,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 5717,
+        "output_tokens_details": {
+          "reasoning_tokens": 1340
+        },
+        "total_tokens": 20340
+      }
+    ],
+    "promptVersion": "countershot-2026-11-02.4",
+    "responseIds": [
+      "resp_6ae894e9f221a9991833486f",
+      "resp_6ae89506ae2d66fd2f8c49e8",
+      "resp_6ae8952c17327627dc3e43e9"
+    ],
+    "toolExecutions": [
+      {
+        "responseId": "resp_6ae894e9f221a9991833486f",
+        "callId": "call_169fb5ee-b912-49e2-b37e-ca9230d73f27",
+        "toolName": "check_task_plan",
+        "result": {
+          "checks": [
+            {
+              "ruleId": "PLAN04",
+              "severity": "error",
+              "message": "An object cannot serve as its own receiving support.",
+              "affectedIds": [
+                "a38"
+              ]
+            },
+            {
+              "ruleId": "PHYS01",
+              "severity": "trial_required",
+              "message": "Static dimensions and hand-resource checks do not establish physical operation. This component assembly has not been physically admitted.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS02",
+              "severity": "trial_required",
+              "message": "Load a fresh carton from supply without helper preload.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS03",
+              "severity": "trial_required",
+              "message": "Exercise the full lid/flap opening and closure without contacting a stop or rail.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS04",
+              "severity": "trial_required",
+              "message": "Check fit, wall springback, retention and station stability with the actual material.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS05",
+              "severity": "trial_required",
+              "message": "Remove the finished parcel without trapped fixtures, snagging or an undeclared support.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS06",
+              "severity": "trial_required",
+              "message": "Reset the station and reach the next unused carton using only declared resources.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS07",
+              "severity": "trial_required",
+              "message": "Perform the actual closure (Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.) with the right hand and the declared permitted supports. Force, peeling, flap springback and simultaneous palm/finger actions remain unverified.",
+              "affectedIds": [
+                "carton"
+              ]
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Insert supplied prepared empty/open 4-cell; carton supplied pre-erected open",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Each group envelope is measured complete-quantity envelope",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "KIT_PHYS01",
+              "severity": "trial_required",
+              "message": "The four independently lidded cells are unadmitted physical hypotheses. Test fresh empty/open insert loading, individual part handling, rolling/spillage, label matching, local flap sweep, tuck force, neighbour interference, mixing, carton closure, extraction and reset.",
+              "affectedIds": [
+                "insert"
+              ]
+            },
+            {
+              "ruleId": "KIT_PHYS02",
+              "severity": "trial_required",
+              "message": "Symbolic quantities are proposed operations, not verified physical counts. A human must inspect actual group counts, segregation and every local closure. No ESD, electrical compatibility, repair performance or transport protection is established.",
+              "affectedIds": [
+                "insert"
+              ]
+            }
+          ],
+          "geometry": {
+            "dimensions": {
+              "trayInnerLengthMm": 92.5,
+              "trayInnerWidthMm": 77.5,
+              "trayOuterLengthMm": 95.5,
+              "trayOuterWidthMm": 80.5,
+              "scoreLengthMm": 95.5,
+              "scoreWidthMm": 80.5,
+              "blankLengthMm": 125.5,
+              "blankWidthMm": 110.5,
+              "stationLengthMm": 185,
+              "stationWidthMm": 165,
+              "footDepthMm": 20,
+              "registrationGapMm": 0.5,
+              "guideLengthMm": 60,
+              "fixtureBlankLengthMm": 60,
+              "fixtureBlankWidthMm": 35,
+              "kitGridLengthMm": 88.5,
+              "kitGridWidthMm": 73.5,
+              "kitCellHeightMm": 15,
+              "kitClosedStackHeightMm": 19.5,
+              "screwsBlankLengthMm": 74,
+              "screwsBlankWidthMm": 107.8,
+              "washersBlankLengthMm": 69,
+              "washersBlankWidthMm": 107.8,
+              "spacersBlankLengthMm": 69,
+              "spacersBlankWidthMm": 107.8,
+              "grommetsBlankLengthMm": 74,
+              "grommetsBlankWidthMm": 117.8
+            },
+            "cartonTarget": {
+              "xMm": 142.5,
+              "yMm": 132.5
+            },
+            "cells": [
+              {
+                "componentId": "screws",
+                "label": "Screws",
+                "requiredCount": 4,
+                "target": {
+                  "xMm": 120.25,
+                  "yMm": 112.75
+                },
+                "bounds": {
+                  "minXMm": 98.25,
+                  "maxXMm": 142.25,
+                  "minYMm": 95.75,
+                  "maxYMm": 129.75
+                }
+              },
+              {
+                "componentId": "washers",
+                "label": "Washers",
+                "requiredCount": 4,
+                "target": {
+                  "xMm": 164.75,
+                  "yMm": 112.75
+                },
+                "bounds": {
+                  "minXMm": 145.25,
+                  "maxXMm": 184.25,
+                  "minYMm": 95.75,
+                  "maxYMm": 129.75
+                }
+              },
+              {
+                "componentId": "spacers",
+                "label": "Spacers",
+                "requiredCount": 2,
+                "target": {
+                  "xMm": 120.25,
+                  "yMm": 149.75
+                },
+                "bounds": {
+                  "minXMm": 100.75,
+                  "maxXMm": 139.75,
+                  "minYMm": 132.75,
+                  "maxYMm": 166.75
+                }
+              },
+              {
+                "componentId": "grommets",
+                "label": "Grommets",
+                "requiredCount": 2,
+                "target": {
+                  "xMm": 164.75,
+                  "yMm": 149.75
+                },
+                "bounds": {
+                  "minXMm": 142.75,
+                  "maxXMm": 186.75,
+                  "minYMm": 130.25,
+                  "maxYMm": 169.25
+                }
+              }
+            ]
+          },
+          "physicalStatus": "untested"
+        }
+      },
+      {
+        "responseId": "resp_6ae89506ae2d66fd2f8c49e8",
+        "callId": "call_c1781f97-66b4-4d64-a6f4-91d8a358991d",
+        "toolName": "check_task_plan",
+        "result": {
+          "checks": [
+            {
+              "ruleId": "PHYS01",
+              "severity": "trial_required",
+              "message": "Static dimensions and hand-resource checks do not establish physical operation. This component assembly has not been physically admitted.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS02",
+              "severity": "trial_required",
+              "message": "Load a fresh carton from supply without helper preload.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS03",
+              "severity": "trial_required",
+              "message": "Exercise the full lid/flap opening and closure without contacting a stop or rail.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS04",
+              "severity": "trial_required",
+              "message": "Check fit, wall springback, retention and station stability with the actual material.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS05",
+              "severity": "trial_required",
+              "message": "Remove the finished parcel without trapped fixtures, snagging or an undeclared support.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS06",
+              "severity": "trial_required",
+              "message": "Reset the station and reach the next unused carton using only declared resources.",
+              "affectedIds": [
+                "insert",
+                "station"
+              ]
+            },
+            {
+              "ruleId": "PHYS07",
+              "severity": "trial_required",
+              "message": "Perform the actual closure (Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.) with the right hand and the declared permitted supports. Force, peeling, flap springback and simultaneous palm/finger actions remain unverified.",
+              "affectedIds": [
+                "carton"
+              ]
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Insert supplied prepared empty/open 4-cell; carton supplied pre-erected open",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "ASSUME01",
+              "severity": "trial_required",
+              "message": "Each group envelope is measured complete-quantity envelope",
+              "affectedIds": []
+            },
+            {
+              "ruleId": "KIT_PHYS01",
+              "severity": "trial_required",
+              "message": "The four independently lidded cells are unadmitted physical hypotheses. Test fresh empty/open insert loading, individual part handling, rolling/spillage, label matching, local flap sweep, tuck force, neighbour interference, mixing, carton closure, extraction and reset.",
+              "affectedIds": [
+                "insert"
+              ]
+            },
+            {
+              "ruleId": "KIT_PHYS02",
+              "severity": "trial_required",
+              "message": "Symbolic quantities are proposed operations, not verified physical counts. A human must inspect actual group counts, segregation and every local closure. No ESD, electrical compatibility, repair performance or transport protection is established.",
+              "affectedIds": [
+                "insert"
+              ]
+            }
+          ],
+          "geometry": {
+            "dimensions": {
+              "trayInnerLengthMm": 92.5,
+              "trayInnerWidthMm": 77.5,
+              "trayOuterLengthMm": 95.5,
+              "trayOuterWidthMm": 80.5,
+              "scoreLengthMm": 95.5,
+              "scoreWidthMm": 80.5,
+              "blankLengthMm": 125.5,
+              "blankWidthMm": 110.5,
+              "stationLengthMm": 185,
+              "stationWidthMm": 165,
+              "footDepthMm": 20,
+              "registrationGapMm": 0.5,
+              "guideLengthMm": 60,
+              "fixtureBlankLengthMm": 60,
+              "fixtureBlankWidthMm": 35,
+              "kitGridLengthMm": 88.5,
+              "kitGridWidthMm": 73.5,
+              "kitCellHeightMm": 15,
+              "kitClosedStackHeightMm": 19.5,
+              "screwsBlankLengthMm": 74,
+              "screwsBlankWidthMm": 107.8,
+              "washersBlankLengthMm": 69,
+              "washersBlankWidthMm": 107.8,
+              "spacersBlankLengthMm": 69,
+              "spacersBlankWidthMm": 107.8,
+              "grommetsBlankLengthMm": 74,
+              "grommetsBlankWidthMm": 117.8
+            },
+            "cartonTarget": {
+              "xMm": 142.5,
+              "yMm": 132.5
+            },
+            "cells": [
+              {
+                "componentId": "screws",
+                "label": "Screws",
+                "requiredCount": 4,
+                "target": {
+                  "xMm": 120.25,
+                  "yMm": 112.75
+                },
+                "bounds": {
+                  "minXMm": 98.25,
+                  "maxXMm": 142.25,
+                  "minYMm": 95.75,
+                  "maxYMm": 129.75
+                }
+              },
+              {
+                "componentId": "washers",
+                "label": "Washers",
+                "requiredCount": 4,
+                "target": {
+                  "xMm": 164.75,
+                  "yMm": 112.75
+                },
+                "bounds": {
+                  "minXMm": 145.25,
+                  "maxXMm": 184.25,
+                  "minYMm": 95.75,
+                  "maxYMm": 129.75
+                }
+              },
+              {
+                "componentId": "spacers",
+                "label": "Spacers",
+                "requiredCount": 2,
+                "target": {
+                  "xMm": 120.25,
+                  "yMm": 149.75
+                },
+                "bounds": {
+                  "minXMm": 100.75,
+                  "maxXMm": 139.75,
+                  "minYMm": 132.75,
+                  "maxYMm": 166.75
+                }
+              },
+              {
+                "componentId": "grommets",
+                "label": "Grommets",
+                "requiredCount": 2,
+                "target": {
+                  "xMm": 164.75,
+                  "yMm": 149.75
+                },
+                "bounds": {
+                  "minXMm": 142.75,
+                  "maxXMm": 186.75,
+                  "minYMm": 130.25,
+                  "maxYMm": 169.25
+                }
+              }
+            ]
+          },
+          "physicalStatus": "untested"
+        }
+      }
+    ],
+    "uploadedFileIds": []
+  },
+  "checks": [
+    {
+      "ruleId": "PHYS01",
+      "severity": "trial_required",
+      "message": "Static dimensions and hand-resource checks do not establish physical operation. This component assembly has not been physically admitted.",
+      "affectedIds": [
+        "insert",
+        "station"
+      ]
+    },
+    {
+      "ruleId": "PHYS02",
+      "severity": "trial_required",
+      "message": "Load a fresh carton from supply without helper preload.",
+      "affectedIds": [
+        "insert",
+        "station"
+      ]
+    },
+    {
+      "ruleId": "PHYS03",
+      "severity": "trial_required",
+      "message": "Exercise the full lid/flap opening and closure without contacting a stop or rail.",
+      "affectedIds": [
+        "insert",
+        "station"
+      ]
+    },
+    {
+      "ruleId": "PHYS04",
+      "severity": "trial_required",
+      "message": "Check fit, wall springback, retention and station stability with the actual material.",
+      "affectedIds": [
+        "insert",
+        "station"
+      ]
+    },
+    {
+      "ruleId": "PHYS05",
+      "severity": "trial_required",
+      "message": "Remove the finished parcel without trapped fixtures, snagging or an undeclared support.",
+      "affectedIds": [
+        "insert",
+        "station"
+      ]
+    },
+    {
+      "ruleId": "PHYS06",
+      "severity": "trial_required",
+      "message": "Reset the station and reach the next unused carton using only declared resources.",
+      "affectedIds": [
+        "insert",
+        "station"
+      ]
+    },
+    {
+      "ruleId": "PHYS07",
+      "severity": "trial_required",
+      "message": "Perform the actual closure (Existing top-opening hinged-lid tuck carton; actual one-handed tuck action requires a trial.) with the right hand and the declared permitted supports. Force, peeling, flap springback and simultaneous palm/finger actions remain unverified.",
+      "affectedIds": [
+        "carton"
+      ]
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Fresh carton supplied pre-erected OPEN; no helper preload.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Insert supplied prepared, assembled, EMPTY and OPEN 4-cell; no parts pre-counted or preloaded.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Each kitComponent bundle envelope is measured complete-quantity envelope, not single-part multiplied.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Each inert part starts loose in separately labelled bulk supply; inventory slip appropriately sized and supplied.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Corner-stop fixtures stay outside parcel and leave lid/flap closure and extraction access.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Right hand only; table plus declared passive cardboard fixtures only, no other body support.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "2x2 cell order screws/washers top row, spacers/grommets bottom row with 3mm cell clearance and 15mm divider height is a dimensional hypothesis.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "One-handed local hinged/tuck flap closure and outer hinged-lid tuck closure force, springback and finger actions are untested.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Tiny-part rolling, escape, inter-cell mixing, label readability/matching and exact-count inspection are untested.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Human reviewer must inspect real counts, segregation, label matching and all four local closures; video/model cannot certify occluded count.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Finished-parcel extraction without snagging, station stability, and reset reach using only declared resources are untested.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "No ESD, electrical safety, compatibility, shipping protection or repair-performance claim is made.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "ASSUME01",
+      "severity": "trial_required",
+      "message": "Benefit versus simple labelled commercial organiser requires matched physical comparison with equal preparation; no superiority claimed.",
+      "affectedIds": []
+    },
+    {
+      "ruleId": "KIT_PHYS01",
+      "severity": "trial_required",
+      "message": "The four independently lidded cells are unadmitted physical hypotheses. Test fresh empty/open insert loading, individual part handling, rolling/spillage, label matching, local flap sweep, tuck force, neighbour interference, mixing, carton closure, extraction and reset.",
+      "affectedIds": [
+        "insert"
+      ]
+    },
+    {
+      "ruleId": "KIT_PHYS02",
+      "severity": "trial_required",
+      "message": "Symbolic quantities are proposed operations, not verified physical counts. A human must inspect actual group counts, segregation and every local closure. No ESD, electrical compatibility, repair performance or transport protection is established.",
+      "affectedIds": [
+        "insert"
+      ]
+    }
+  ]
+}
