@@ -30,13 +30,17 @@ The Blueprint selects:
 
 `standard` is a conservative starting selection for the combined Next.js process, worker and bounded media buffers. Its current memory allowance and price must be reviewed in Render's creation screen; no price or capacity guarantee was established here. Choose a region near the operators. Do not horizontally scale this SQLite-backed service. Both processes already run in the same container and use the same mounted directory; do not create a worker service with a separate disk.
 
-Enter the real Meta credential as `MODEL_API_KEY` in Render's secret field. The Blueprint generates a private `APP_ACCESS_CODE`; retrieve it from Render's environment settings for the operator's login. Keep both values out of Git, chat, browser code and Vercel environment settings. The development environment's destination-bound credential does not automatically configure Render.
+Enter the real Meta credential as `MODEL_API_KEY` in Render's secret field. The Blueprint leaves `APP_ACCESS_CODE` empty so the public demo opens directly. Projects, camera sessions and media still require the owning browser's private session cookie. Keep the Meta key out of Git, chat, browser code and Vercel environment settings. The development environment's destination-bound credential does not automatically configure Render.
+
+For an **existing Render service** created by the earlier Blueprint, open **countershot-api → Environment → Edit**, clear the value of `APP_ACCESS_CODE` or remove that variable, then choose **Save & Deploy**. An ordinary code redeploy does not clear a previously generated environment value. After deployment, `/api/health` should report `accessCodeRequired: false` and `accessGranted: true`. The Vercel URL will then open without a workspace-code prompt; no frontend setting is needed.
+
+For an intentionally private workspace, a nonempty `APP_ACCESS_CODE` on Render enables the optional gate. Keep that code in the backend's secret settings and supply it only when signing in. It does not replace browser ownership or restore projects on another device.
 
 Use the Dockerfile's commands. Do not override the start command with a frontend-only server, and do not add a separate build command. The image supplies Node 24, `ffmpeg`, `ffprobe`, the web process and worker. `COUNTERSHOT_BACKEND_ORIGIN` must remain absent on Render.
 
 ## Bootstrap the real addresses
 
-Create the backend with **both** `APP_PUBLIC_ORIGIN` and `PUBLIC_API_ORIGIN` absent. This is the application's supported single-origin mode, protected by the generated access code. The first deploy establishes the actual Render HTTPS address; do not guess its hostname or put literal `$RENDER_EXTERNAL_URL` into an environment value.
+Create the backend with **both** `APP_PUBLIC_ORIGIN` and `PUBLIC_API_ORIGIN` absent. This is the application's supported single-origin mode; browser ownership still protects saved work. The first deploy establishes the actual Render HTTPS address; do not guess its hostname or put literal `$RENDER_EXTERNAL_URL` into an environment value.
 
 Once that service is healthy:
 
@@ -60,13 +64,13 @@ If this fails, stop before accepting the deployment and resolve the mount owners
 
 ## Deployment checks
 
-Through the stable Vercel URL, check `/api/health`, enter the private access code, create a labelled test project and save a camera checkpoint. Confirm that a different browser cannot read its frames. A selected photo must remain private and byte-bound to its assessment.
+Through the stable Vercel URL, check `/api/health` reports `accessCodeRequired: false`, open the app directly, create a labelled test project and save a camera checkpoint. Confirm that a different browser cannot read its frames. A selected photo must remain private and byte-bound to its assessment. If the optional workspace gate is deliberately enabled, enter its code first and expect `accessCodeRequired: true` instead.
 
 Upload a video larger than 4.5 MB using the direct upload path. Confirm that its ticket is single-use, playback/seeking works, and both the original and normalized media remain available only to the owner. Restart the Render service and verify that the same browser can still retrieve its project and saved media. The disk must survive the restart.
 
 The existing smoke command creates synthetic records without requesting model inference:
 
-Supply the deployed access code as `APP_ACCESS_CODE` in that local process's environment or ignored `.env.local`; the smoke does not need a local Meta key. Do not commit that file or paste the code into chat.
+The smoke reads the access mode from `/api/health`. The public demo needs no access code or local Meta key. Only if the optional gate is enabled, supply the deployed code as `APP_ACCESS_CODE` in that local process's environment or ignored `.env.local`. Do not commit that file or paste the code into chat. Both modes check that another browser cannot mint upload tickets or download private media.
 
 ```sh
 SMOKE_BASE_URL=https://your-stable-project.vercel.app node --env-file-if-exists=.env.local --import tsx scripts/hybrid-smoke.ts

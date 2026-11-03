@@ -293,7 +293,7 @@ async function nativeSceneFixture(page: Page) {
       gets.push(url.pathname + url.search);
       if (url.pathname.includes('/frames/')) {
         const bytes = images.get(url.pathname.split('/').at(-1)!);
-        await route.fulfill(bytes ? { contentType: 'image/jpeg', body: bytes } : { status: 404, json: { error: 'Unknown synthetic scene frame.' } }); return;
+        await route.fulfill(bytes ? { contentType: 'image/jpeg', headers: { 'Cache-Control': 'private, no-store' }, body: bytes } : { status: 404, json: { error: 'Unknown synthetic scene frame.' } }); return;
       }
       const operationId = url.searchParams.get('operationId');
       if (!intake || operationId && !operations.has(operationId)) { await route.fulfill({ status: 404, json: { error: 'No saved scene analysis found yet.' } }); return; }
@@ -348,7 +348,7 @@ async function nativeSceneFixture(page: Page) {
 async function startWorkflow(page: Page, id = cameraWorkflows[0].id, unknownFactIds: string[] = []) {
   const workflow = cameraWorkflow(id)!;
   await page.goto('/camera');
-  await expect(page.getByRole('heading', { name: 'Show the setup. Tell me the goal.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Show the setup.' })).toBeVisible();
   await page.getByText('Choose a different starting point', { exact: true }).click();
   await page.getByRole('button', { name: 'Choose workflow manually', exact: true }).click();
   await expect(page.getByLabel('Camera workflows').getByRole('button')).toHaveCount(5);
@@ -368,9 +368,20 @@ async function startWorkflow(page: Page, id = cameraWorkflows[0].id, unknownFact
 async function sceneGoal(page: Page, context = '') {
   await page.getByRole('textbox', { name: 'What would you like to do?', exact: true }).fill('Route these labelled prototype sensor branches to the shown destinations.');
   if (context) {
-    await page.getByText('Anything to keep in mind? (optional)', { exact: true }).click();
+    await page.getByText('Add context (optional)', { exact: true }).click();
     await page.getByLabel('Constraints or context', { exact: true }).fill(context);
   }
+}
+
+async function understandNewView(page: Page) {
+  const retake = page.getByRole('button', { name: 'Retake view', exact: true });
+  if (await retake.isVisible()) await retake.click();
+  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+}
+
+async function openSessionHistory(page: Page) {
+  const summary = page.locator('summary').filter({ hasText: /^Session history$/ });
+  if (!await summary.evaluate(node => (node.parentElement as HTMLDetailsElement).open)) await summary.click();
 }
 
 test('camera opens first and the selected scene supplies reviewable drafts before one-at-a-time prerequisites', async ({ page }) => {
@@ -382,7 +393,7 @@ test('camera opens first and the selected scene supplies reviewable drafts befor
   });
   const fixture = await nativeSceneFixture(page);
   await page.goto('/camera');
-  await expect(page.getByRole('heading', { name: 'Show the setup. Tell me the goal.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Show the setup.' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Stop camera', exact: true })).toBeVisible();
   await expect.poll(() => page.getByLabel('Local camera preview').evaluate(video => (video as HTMLVideoElement).videoWidth)).toBeGreaterThan(0);
   await expect(page.getByRole('region', { name: 'Confirm workflow facts' })).toHaveCount(0);
@@ -399,6 +410,10 @@ test('camera opens first and the selected scene supplies reviewable drafts befor
   await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Scene analysis result' })).toContainText('labelled sensor branches');
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  await expect(page.getByAltText('Exact photo used to understand the scene')).toBeVisible();
+  await expect(page.getByLabel('Local camera preview')).toBeHidden();
+  expect(await page.getByLabel('Scene camera').locator('img:visible').count()).toBe(1);
+  await page.screenshot({ path: '/tmp/countershot-minimal-camera-mobile-result.png' });
   expect(fixture.posts).toHaveLength(1);
   expect(fixture.posts[0]).toMatchObject({ source: 'camera', context: 'Use one hand and removable bench clips only.' });
   expect(fixture.posts[0].capturedAt).toMatch(/^\d{4}-/);
@@ -494,13 +509,13 @@ test('unsupported scenes remain outside a workflow and retakes retain the same t
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toHaveCount(0);
   const originalId = fixture.intake.id;
   fixture.chooseNext('view');
-  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+  await understandNewView(page);
   await expect(page.getByText('Expose the labels in one clear view.', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
   fixture.chooseNext('supported');
-  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+  await understandNewView(page);
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Retake view', exact: true })).toBeDisabled();
   expect(fixture.posts).toHaveLength(3);
   expect(fixture.posts.slice(1).every(post => post.intakeId === originalId && post.expectedRevision !== null)).toBe(true);
   expect(fixture.intake.executionBudget.invocations).toHaveLength(3);
@@ -528,7 +543,7 @@ test('a stale scene revision refreshes its known record without looking up an un
   await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
   fixture.advanceRevision(); fixture.rejectNext(409);
-  await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+  await understandNewView(page);
   await expect(page.getByRole('status').filter({ hasText: 'scene changed in another request' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Refresh saved analysis', exact: true }).click();
@@ -579,6 +594,36 @@ test('a reset keeps one-question setup while earlier-scene visual drafts remain 
   expect(fixture.posts).toHaveLength(1); expect(fixture.browserFixture.framePosts).toHaveLength(0);
 });
 
+test('returning from retake requires the saved photo to load again before adoption', async ({ page }) => {
+  await page.addInitScript(() => {
+    document.addEventListener('load', event => {
+      const image = event.target;
+      const state = window as unknown as { holdSavedLoad?: boolean; savedLoadBlocked?: boolean; releaseSavedLoad?: () => void };
+      if (state.holdSavedLoad && image instanceof HTMLImageElement && image.alt === 'Exact photo used to understand the scene') {
+        event.stopImmediatePropagation(); state.savedLoadBlocked = true;
+        state.releaseSavedLoad = () => { state.holdSavedLoad = false; image.dispatchEvent(new Event('load')); };
+      }
+    }, true);
+  });
+  const fixture = await nativeSceneFixture(page);
+  await page.goto('/camera'); await sceneGoal(page);
+  await expect(page.getByRole('button', { name: 'Understand this view', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  await page.evaluate(() => { (window as unknown as { holdSavedLoad: boolean }).holdSavedLoad = true; });
+  await page.getByRole('button', { name: 'Retake view', exact: true }).click();
+  await expect(page.getByLabel('Local camera preview')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
+  await page.getByText('Scene details', { exact: true }).click();
+  await page.getByRole('button', { name: 'Refresh saved analysis', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { savedLoadBlocked: boolean }).savedLoadBlocked)).toBe(true);
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
+  await page.evaluate(() => { (window as unknown as { releaseSavedLoad: () => void }).releaseSavedLoad(); });
+  await expect(page.getByAltText('Exact photo used to understand the scene')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
+  expect(fixture.posts).toHaveLength(1); expect(fixture.browserFixture.framePosts).toHaveLength(0);
+});
+
 test('changed scene details and a newly analysed image must be checked before workflow adoption', async ({ page }) => {
   const fixture = await nativeSceneFixture(page);
   await page.goto('/camera'); await sceneGoal(page);
@@ -586,6 +631,7 @@ test('changed scene details and a newly analysed image must be checked before wo
   await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeEnabled();
   const firstFrame = fixture.intake.frame!.id;
+  await page.getByText('Goal & context', { exact: true }).click();
   await page.getByRole('textbox', { name: 'What would you like to do?', exact: true }).fill('Inspect the new labelled route in this changed scene.');
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
   let release!: () => void, entered!: () => void;
@@ -595,7 +641,7 @@ test('changed scene details and a newly analysed image must be checked before wo
     entered(); await held; await route.fallback();
   });
   try {
-    await page.getByRole('button', { name: 'Understand a new view', exact: true }).click();
+    await understandNewView(page);
     await requested;
     expect(fixture.intake.frame!.id).not.toBe(firstFrame);
     await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toBeDisabled();
@@ -612,11 +658,12 @@ test('a pending saved scene can be cancelled and late paid usage cannot restore 
   await page.getByRole('button', { name: 'Understand this view', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Cancel saved analysis', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Cancel saved analysis', exact: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'scene analysis was cancelled' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Analysis cancelled' })).toBeVisible();
   fixture.lateCancelledResponse();
+  await page.getByText('Scene details', { exact: true }).click();
   await page.getByRole('button', { name: 'Refresh saved analysis', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Use this workflow', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Understand a new view', exact: true })).toHaveCount(0);
   expect(fixture.posts).toHaveLength(1);
   expect(fixture.intake.executionBudget.invocations[0].responseId).toBe('offline-scene-response-1');
 });
@@ -666,8 +713,8 @@ test('phone checkpoint loop preserves unknown readings and records a failed meas
   await page.getByLabel('Upload camera checkpoint').setInputFiles(beforeImage);
   await expect(page.getByLabel('Checkpoint purpose')).toHaveValue('after');
   expect(fixture.framePosts[0]).toEqual({ purpose: 'before', source: 'upload', capturedAt: null });
-  await expect(page.getByLabel('Camera guidance').getByText('Look for:', { exact: false })).toBeVisible();
-  await expect(page.getByLabel('Camera guidance').getByText('Stop or retake if:', { exact: false })).toBeVisible();
+  await expect(page.getByLabel('Current camera action').getByText('Look for:', { exact: false })).toBeVisible();
+  await expect(page.getByLabel('Current camera action').getByText('Stop or retake if:', { exact: false })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Confirm reviewed step', exact: false })).toBeDisabled();
   await page.getByLabel('Upload camera checkpoint').setInputFiles(afterImage);
   await expect(page.getByLabel('Assessed frozen frame')).toBeVisible();
@@ -702,6 +749,7 @@ test('phone checkpoint loop preserves unknown readings and records a failed meas
   await expect(page.getByRole('button', { name: 'Confirm reviewed step', exact: false })).toBeDisabled();
   await page.getByRole('button', { name: 'Record incomplete evidence', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Your failed review was saved' })).toBeVisible();
+  await openSessionHistory(page);
   await expect(page.getByLabel('Physical review history').getByText('Failed attempt', { exact: false })).toBeVisible();
   await expect(page.getByLabel('Physical review history')).toContainText('required at least 10 mm');
   expect(fixture.session.currentStepId).toBe(step.id);
@@ -748,6 +796,7 @@ test('watching sends at most three after-checks, waits for responses and stops f
   expect(fixture.framePosts).toHaveLength(2);
   await page.getByRole('button', { name: 'Watch this step (3 checks)', exact: true }).click();
   await expect.poll(() => fixture.framePosts.length).toBe(3);
+  await page.getByLabel('Camera guidance').getByText('Scene details', { exact: true }).click();
   await expect(page.getByText('Synthetic after check 3;', { exact: false }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Stop watching', exact: true })).toBeVisible();
   await page.clock.runFor(15_001);
@@ -816,10 +865,10 @@ test('delayed camera reads cannot restore an earlier revision or same-revision g
     await oldReady.entered;
     fixture.beginPendingCheck();
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-    await expect(page.getByRole('status').filter({ hasText: 'Meta is checking the selected snapshot' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Checking your photo' })).toBeVisible();
     oldReady.release(); await oldReady.delivered;
     await page.waitForTimeout(100);
-    await expect(page.getByRole('status').filter({ hasText: 'Meta is checking the selected snapshot' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Checking your photo' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Read guidance aloud', exact: true })).toHaveCount(0);
   } finally { oldReady.release(); }
 });
@@ -928,12 +977,14 @@ test('a legacy completed workflow stays historical until newly required facts ar
   await expect(page.getByRole('button', { name: 'Reopen previous step', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Inspect this setup', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Watch this step (3 checks)', exact: true })).toHaveCount(0);
+  await openSessionHistory(page);
   const history = page.getByLabel('Physical review history');
   await expect(history).toContainText('Historical review · earlier checks');
   await history.locator('summary').click();
   await expect(history).toContainText('Original criterion definition not recorded.');
   await expect(history).toContainText('original outline error mm: 0.3');
   await expect(history).not.toContainText('required target');
+  await openSessionHistory(page);
   await page.locator('summary').filter({ hasText: /^Checkpoint history/ }).click();
   await page.locator('summary').filter({ hasText: /^Historical mixed-intent camera assessment/ }).click();
   await expect(page.getByText('Historical assessment · earlier decision contract', { exact: true })).toBeVisible();
@@ -998,6 +1049,7 @@ test('a new fast checkpoint refines a conservative clock overestimate after a de
     held.release(); await held.delivered;
     await expect(page.getByRole('button', { name: 'Read guidance aloud', exact: true })).toBeDisabled();
     await page.getByLabel('Upload camera checkpoint').setInputFiles(await syntheticBench(page, true));
+    await page.getByLabel('Camera guidance').getByText('Scene details', { exact: true }).click();
     await expect(page.getByText('Synthetic after check 2;', { exact: false }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Read guidance aloud', exact: true })).toBeEnabled();
   } finally { held.release(); }
@@ -1009,6 +1061,7 @@ test('an earlier pending check remains historical without locking facts reset or
   fixture.seedLegacyCompleted(true);
   await page.getByRole('button', { name: 'Refresh session', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Historical checks · confirmation required.' })).toBeVisible();
+  await openSessionHistory(page);
   await page.locator('summary').filter({ hasText: /^Checkpoint history/ }).click();
   await expect(page.getByText('Analysis pending', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Review facts', exact: true })).toBeEnabled();
@@ -1026,6 +1079,7 @@ test('an earlier pending check remains historical without locking facts reset or
   await page.getByLabel('These are actual measured or operator-stated facts.', { exact: false }).check();
   await page.getByRole('button', { name: 'Save facts and restart view checks', exact: false }).click();
   await expect(page.getByRole('button', { name: 'Choose checkpoint photo', exact: true })).toBeEnabled();
+  await openSessionHistory(page);
   await page.locator('summary').filter({ hasText: /^Checkpoint history/ }).click();
   await expect(page.getByText('Analysis pending', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Physical review history')).toContainText('Historical review · earlier checks');
@@ -1135,6 +1189,7 @@ test('a saved view request survives refresh and resumes only from an explicitly 
   expect(fixture.session.currentStepId).toBe(phase);
   expect(fixture.session.beforeTurn).toEqual(anchor);
   expect(fixture.session.evidenceRequests?.find(item=>item.id===request.id)?.status).toBe('answered');
+  await openSessionHistory(page);
   await expect(page.getByRole('region',{name:'Evidence request history'})).toContainText('Answered · Requested view');
   await expect(page.getByRole('button',{name:'Confirm reviewed step',exact:false})).toBeDisabled();
   fixture.chooseNextDecision('request_view');
@@ -1145,6 +1200,7 @@ test('a saved view request survives refresh and resumes only from an explicitly 
   expect(fixture.framePosts).toHaveLength(4);
   expect(fixture.session.sceneEpoch).toBe(epoch);
   expect(fixture.session.currentStepId).toBe(phase);
+  await openSessionHistory(page);
   await expect(page.getByRole('region',{name:'Evidence request history'})).toContainText('Cancelled request · Requested view');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
@@ -1191,6 +1247,7 @@ test('an unknown prerequisite is answered in its exact unit without resetting th
   await expect(page.getByRole('button',{name:'Read guidance aloud',exact:true})).toBeEnabled();
   expect(fixture.framePosts).toHaveLength(4);
   expect(fixture.framePosts[3].requestId).toBeUndefined();
+  await openSessionHistory(page);
   await expect(page.getByRole('region',{name:'Evidence request history'})).toContainText('Answered · Requested prerequisite fact');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
@@ -1219,6 +1276,7 @@ test('changing a confirmed prerequisite requires an explicit facts reset and mak
   expect(fixture.session.sceneEpoch).toBe(epoch+1);
   expect(fixture.session.currentStepId).toBe(fixture.workflow.steps[0].id);
   expect(fixture.framePosts).toHaveLength(3);
+  await openSessionHistory(page);
   await expect(page.getByRole('region',{name:'Evidence request history'})).toContainText('Stale request · Requested prerequisite fact');
 });
 
@@ -1252,6 +1310,7 @@ test('cancelling a pending view answer keeps its late response historical while 
     expect(fixture.session.latestTurn!.id).toBe(current);
     expect(fixture.framePosts).toHaveLength(4);
     expect(fixture.patches.filter(patch=>patch.action==='request_cancel')).toHaveLength(1);
+    await openSessionHistory(page);
     await page.locator('summary').filter({hasText:/^Checkpoint history/}).click();
     await page.locator('summary').filter({hasText:'Historical check · facts or step changed'}).click();
     await expect(page.getByText('The cancelled answer returned late and remains historical.',{exact:true})).toBeVisible();
@@ -1427,7 +1486,9 @@ test('actual failed readings stay held until an explicit passing recheck and fre
   await expect(page.getByRole('region',{name:'Prediction comparison'})).toContainText('Supported by this view');
   expect(fixture.session.guidance.canConfirm).toBe(true);
   await expect(page.getByRole('button',{name:'Confirm reviewed step',exact:false})).toBeDisabled();
+  await openSessionHistory(page);
   await expect(page.getByRole('region',{name:'Actual recheck history'})).toContainText('Known failure recorded');
+  await openSessionHistory(page);
   await expect(page.getByRole('region',{name:'Actual recheck history'})).toContainText('Actual recheck recorded');
   expect(fixture.framePosts).toHaveLength(6);
 });
@@ -1439,6 +1500,7 @@ test('a saved v2 decision stays readable in history without becoming current v3 
   await expect(page.getByRole('button',{name:'Read guidance aloud',exact:true})).toBeEnabled();
   fixture.seedV2History();
   await page.getByRole('button',{name:'Refresh session',exact:true}).click();
+  await openSessionHistory(page);
   await page.locator('summary').filter({hasText:/^Checkpoint history/}).click();
   await page.locator('summary').filter({hasText:'Historical v2 strict decision.'}).click();
   await expect(page.getByText('Historical assessment · earlier decision contract',{exact:true})).toBeVisible();

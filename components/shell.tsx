@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Boxes, Camera, CircleHelp, FolderOpen, Layers3, LogOut, ScanLine } from "lucide-react";
+import { Camera, FolderOpen, Layers3, ScanLine } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function Mark({ small = false }: { small?: boolean }) {
@@ -12,19 +12,12 @@ export function Shell({ children, projectId, current = "Projects" }: { children:
   return <div className="app-shell">
     <aside className="sidebar">
       <Link className="brand" href="/" aria-label="CounterShot home"><Mark/><span>CounterShot<span className="brand-dot">.</span></span></Link>
-      <div className="sidebar-caption">YOUR WORKSPACE</div>
-      <nav className="side-nav" aria-label="Main navigation">
-        <Link href="/" className={current === "Projects" ? "active" : ""}><FolderOpen size={18}/> Projects <span className="nav-dot"/></Link>
+      <nav className={`side-nav${projectId ? "" : " primary-nav"}`} aria-label="Main navigation">
         <Link href="/camera" className={current === "Camera" ? "active" : ""}><Camera size={18}/> Camera</Link>
-        <Link href={projectId ? `/projects/${projectId}/design` : "/#workflow"} className={current === "Workbench" ? "active" : ""}><Layers3 size={18}/> Workbench</Link>
-        <Link href={projectId ? `/projects/${projectId}/trials` : "/#evidence"} className={current === "Evidence" ? "active" : ""}><ScanLine size={18}/> Evidence</Link>
+        <Link href="/" className={current === "Projects" ? "active" : ""}><FolderOpen size={18}/> Projects <span className="nav-dot"/></Link>
+        {projectId && <><Link href={`/projects/${projectId}/design`} className={current === "Workbench" ? "active" : ""}><Layers3 size={18}/> Workbench</Link>
+        <Link href={`/projects/${projectId}/trials`} className={current === "Evidence" ? "active" : ""}><ScanLine size={18}/> Evidence</Link></>}
       </nav>
-      <div className="sidebar-bottom">
-        <div className="scope-note"><Boxes size={22}/><strong>Small changes.<br/>More possible.</strong><p>Physical workflows, designed around the person.</p><Link href="/#workflow">How CounterShot works <ArrowUpRight size={13}/></Link></div>
-        <div className="side-divider"/>
-        <a className="help-link" href="https://dev.meta.ai/events/global-hackathon" target="_blank" rel="noreferrer"><CircleHelp size={17}/> Hackathon information <ArrowUpRight size={13}/></a>
-        <div className="workspace-account"><span className="account-avatar">CS</span><div><strong>CounterShot Studio</strong><small>Hackathon workspace</small></div><LogOut size={15} aria-hidden="true"/></div>
-      </div>
     </aside>
     <main className="main-area">{children}</main>
   </div>;

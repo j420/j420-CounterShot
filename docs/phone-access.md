@@ -21,8 +21,8 @@ The five profiles are branching harness routing, dry-fit fragment reconstruction
 
 ## Jig-design companion and full trial videos
 
-1. Open the hosted link, enter the workspace access code and create a project.
-2. In Observe, use **Record video**, **Take photo** or **Choose existing files**. Native camera buttons ask the browser to open the rear camera where supported; other browsers may show a file chooser. The application does not start a live stream or silently record.
+1. Open the hosted link and start a workshop task. The public demo needs no workspace code; existing Render services must clear the earlier generated `APP_ACCESS_CODE` once.
+2. In Observe, use **Record video** or **Take photo** to open the rear-camera preview inside the page. Start recording or take the photo explicitly, review it locally, then choose whether to save it. Existing-file and device-camera fallbacks remain available when browser capture is unavailable.
 3. Film the original method and its actual holding/alignment conflict. A generated jig is not required for this first recording. If the original operation is blocked, show that blockage and identify any separately assisted demonstration.
 4. Upload the clip. The saved confirmation points to **Analyze the job**; uploading alone does not request inference. Review the inferred actions and open questions, then confirm actual measurements and permitted operations. Meta inference runs on the server with its configured key.
 5. Review the proposed jig and sequence. Download/print the templates at actual size, then record the exact physical build and readiness checks.
@@ -34,9 +34,9 @@ MOV, M4V, WebM and incompatible MP4 recordings are converted to a playable MP4 c
 
 ## Current project access
 
-Keep using the **same browser profile** on the phone. The access code opens the application; project ownership additionally uses that browser's private session cookie. Opening a project URL on another phone or computer does not transfer ownership. Account login, device pairing and project sharing have not been implemented. Export evidence and drawings before clearing browser data.
+Keep using the **same browser profile** on the phone. The public demo opens directly; project ownership still uses that browser's private session cookie. Opening a project URL on another phone or computer does not transfer ownership. A nonempty backend `APP_ACCESS_CODE` optionally enables the older workspace gate. Account login, device pairing and project sharing have not been implemented. Export evidence and drawings before clearing browser data.
 
-Phone layout and camera-input wiring can be checked in Chromium automation. Native camera behavior, codec handling and playback still need a real iPhone/Safari and Android/Chrome check on the final HTTPS deployment.
+Phone layout and in-page photo/video capture can be checked with synthetic camera streams in Chromium automation. Device permission behavior, codec handling and playback still need a real iPhone/Safari and Android/Chrome check on the final HTTPS deployment.
 
 [Phone capture preview](screenshots/phone-capture.png) shows the running interface on a synthetic project. Its test server deliberately has no provider key; it is not a live public link or a recorded physical trial.
 
@@ -44,8 +44,8 @@ Phone layout and camera-input wiring can be checked in Chromium automation. Nati
 
 ## URL and hosting status
 
-Vercel is the requested public host. **No public deployment or working phone URL has been created.** The current development environment supplies no public preview endpoint or deployment identity.
+The Vercel frontend and the Render service at `https://countershot-api.onrender.com` have been created. The production frontend URL has not been recorded in this repository. Keep its stable origin consistent with Render's `APP_PUBLIC_ORIGIN` setting.
 
 The selected arrangement is Vercel plus one persistent Node backend for SQLite, private media, ffmpeg and the job worker. Small API requests use the frontend; large recordings go directly to the backend with a short-lived project-scoped, one-use upload ticket. The phone does not need a second login or a Meta key for that transfer. The exact frontend origin and upload authorization are checked by the backend.
 
-Routing and direct uploads are implemented and locally verified over HTTPS with the Docker backend, including a recording exceeding the frontend upload limit and persistence after restart. An actual Vercel/backend deployment still needs connected hosting accounts and its final URL checks. See the [deployment settings](vercel-deployment.md). The Meta key must be configured on the actual inference backend and must never be exposed in the phone page.
+Routing and direct uploads are implemented and locally verified over HTTPS with the Docker backend, including a recording exceeding the frontend upload limit and persistence after restart. Final Vercel-to-Render transport and phone checks remain unverified from this environment. See the [deployment settings](vercel-deployment.md). The Meta key must be configured on the actual inference backend and must never be exposed in the phone page.

@@ -23,7 +23,11 @@ After the necessary details are confirmed, the existing fresh before-view → bo
 
 The new API and domain regressions cover ownership, duplicate operations, corrupt and foreign frames, unsupported or malformed results, cancellation and retake races, shared budgets, explicit draft confirmation, numeric units and preservation of reviewed phases. Existing camera guidance and workshop behavior remain part of the regression suite.
 
-Validation on 3 November 2026 includes the unit/API suite, 39 camera browser journeys and 11 workshop browser journeys. Camera browser tests use synthetic camera streams and explicit API/model fixtures. Phone-width screenshots check layout; they do not establish device-camera compatibility.
+Validation on 3 November 2026 passed 424 unit/API tests, 40 camera browser journeys and 17 workshop/capture browser journeys. A focused playback check also loaded and played an actual browser-recorded clip through the local backend. Camera-guidance tests use synthetic streams and explicit API/model fixtures; native photo/video tests use synthetic streams with real browser capture and local server validation. Phone-width screenshots check layout; they do not establish device-camera compatibility.
+
+The [phone scene-review preview](evaluations/camera-first-2026-11-03/phone-scene-review.png) shows one assessed image, a compact workflow suggestion and an explicit continue action. Its image and response are synthetic browser fixtures.
+
+The [compact home](evaluations/camera-first-2026-11-03/phone-home.png) and [inline recording review](evaluations/camera-first-2026-11-03/phone-video-review.png) show the two capture entry points. A photo or recording remains local until accepted. These previews use isolated storage and synthetic footage, with no physical outcome claimed.
 
 A [live Meta intake check](evaluations/camera-first-2026-11-03/live-meta-intake.json) used the labelled synthetic harness diagram. One request returned `harness_routing`, read the printed target map, distinguished the diagram from a physical harness, and left physical conditions unconfirmed. It used 4,150 reported tokens and took 11.7 seconds in this environment. No session or confirmed facts were created automatically. This verifies the new API contract, not physical performance, a real phone camera or deployed Vercel-to-Render transport.
 
@@ -31,4 +35,6 @@ A [live Meta intake check](evaluations/camera-first-2026-11-03/live-meta-intake.
 
 Deploy the same current code to Render and Vercel. Render's deployment trigger is manual. The frontend checks the backend's `sceneIntake` and `progressivePrerequisites` capabilities before using new endpoints. While an older backend is still running, local preview and the explicit manual alternative remain available; scene understanding displays an update notice instead of sending requests to missing endpoints.
 
-After updating Render, verify through the stable Vercel production URL: camera permission, local preview with no inference, one scene analysis, review of a visible draft, a nonvisual prerequisite, a fresh ordinary checkpoint, and saved ownership after refresh. A production phone trial and physical outcome remain separate acceptance checks.
+For direct public entry, clear the existing Render `APP_ACCESS_CODE` and save/deploy; the blueprint now defaults to an empty code. Browser ownership remains in place and the Meta key stays on Render.
+
+After updating Render, verify through the stable Vercel production URL: camera permission, local preview with no inference, one scene analysis, review of a visible draft, a nonvisual prerequisite, a fresh ordinary checkpoint, and saved ownership after refresh. Also check inline workshop photo/video recording and playback on real phone hardware. A production phone trial and physical outcome remain separate acceptance checks.

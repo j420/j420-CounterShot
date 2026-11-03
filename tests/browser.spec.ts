@@ -1,18 +1,22 @@
 import { test, expect } from '@playwright/test';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
-test.use({ baseURL: process.env.BROWSER_BASE_URL || 'http://127.0.0.1:3001', launchOptions: { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined), args: ['--no-sandbox'] } });
+test.use({ baseURL: process.env.BROWSER_BASE_URL || 'http://127.0.0.1:3001', launchOptions: { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined), args: ['--no-sandbox', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
 
 test('workshop jig sample preserves templates, six readiness conditions and unknown alignment across refresh', async ({page})=>{
   await page.goto('/');
   await expect(page.getByRole('heading',{name:'Projects',exact:true})).toBeVisible();
   await expect(page.getByRole('region',{name:'How CounterShot works'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'What happens after upload?'})).toBeHidden();
+  await page.getByText('What happens next?',{exact:true}).click();
   await expect(page.getByRole('heading',{name:'What happens after upload?'})).toBeVisible();
-  await expect(page.getByText('Your clip is saved first.',{exact:false})).toBeVisible();
+  await expect(page.getByText('Workshop: your clip is saved first.',{exact:false})).toBeVisible();
+  await page.getByText('What happens next?',{exact:true}).click();
   for (const width of [320,390,768,1440]) {
     await page.setViewportSize({width,height:900});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Evidence',exact:true})).toBeInViewport();
+    await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Camera',exact:true})).toBeInViewport();
+    if (width === 390) await page.screenshot({path:'/tmp/countershot-minimal-home-390.png'});
   }
   await page.setViewportSize({width:1280,height:900});
   await page.screenshot({path:'/tmp/countershot-ui/home.png',fullPage:true});
@@ -70,13 +74,13 @@ test('actual workshop inputs save flat measured facts and joint windows without 
   await page.goto('/');
   await page.getByRole('button',{name:'New project',exact:true}).click();
   await expect(page.getByRole('radio')).toHaveCount(0);
-  await expect(page.getByText('Custom workshop jig',{exact:true})).toBeVisible();
-  await page.getByLabel('Project name').fill('Measured workshop browser fixture');
+  await expect(page.getByRole('dialog')).toContainText('Custom workshop jig');
+  await expect(page.getByRole('dialog').getByRole('textbox')).toHaveCount(2);
   await page.getByLabel('What are you trying to do?').fill('Use a jig to hold and align enclosure panels while my right hand joins the next low-force interlocking panel.');
   await page.getByLabel('What does finished mean?').fill('Registered panels joined within tolerance, gate parked, enclosure extracted intact, and jig reset.');
   await page.getByRole('button',{name:'Create project',exact:true}).click();
   await expect(page).toHaveURL(/\/capture$/);
-  await page.getByRole('link',{name:'Confirm Ground the facts'}).click();
+  await page.getByRole('link',{name:'Confirm',exact:true}).click();
   await expect(page.getByLabel(/^Workpiece width/)).toHaveValue('');
   const groups=[
     {name:'The workpiece',values:[['Workpiece width','120'],['Workpiece depth','90'],['Workpiece height','70']]},
@@ -112,7 +116,10 @@ test('actual workshop inputs save flat measured facts and joint windows without 
   expect(state.snapshots[0].facts.jointZones).toHaveLength(4);
   expect(state.snapshots[0].facts.allowedOperations).toContain('join');
   expect(state.snapshots[0].facts.kitComponents).toBeUndefined();expect(state.designs).toHaveLength(0);
-  await page.reload();await expect(page.getByText('Snapshot 1',{exact:true})).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Snapshot 1',{exact:true})).toBeHidden();
+  await page.getByText('Project details',{exact:true}).click();
+  await expect(page.getByText('Snapshot 1',{exact:true})).toBeVisible();
 });
 
 test('legacy carton history still renders its exact design and construction export',async({page})=>{
@@ -340,14 +347,14 @@ test('phone camera controls request rear capture and upload source and trial fil
   await video.dispatchEvent('cancel');
   expect(uploads).toHaveLength(0);
   const picker=page.waitForEvent('filechooser');
-  await source.getByRole('button',{name:'Record video',exact:true}).click();
+  await source.getByRole('button',{name:'Choose existing',exact:true}).click();
   await (await picker).setFiles({name:'phone-recording.mov',mimeType:'video/quicktime',buffer:Buffer.from('Synthetic camera wiring fixture; not physical footage')});
   await expect.poll(()=>uploads.length).toBe(1);
   await expect(source.getByRole('button',{name:'Take photo',exact:true})).toBeDisabled();
   await expect(source.getByRole('button',{name:'Choose existing',exact:true})).toBeDisabled();
   releaseUpload!();
   await expect(source.getByRole('button',{name:'Record video',exact:true})).toBeEnabled();
-  await expect(source.getByRole('status')).toHaveText('Upload saved. Next, choose Analyze the job to request the analysis.');
+  await expect(source.getByRole('status')).toHaveText('Saved. Ready to analyze.');
   expect(analysisRequests).toBe(0);
   await expect(video).toHaveValue('');
   await photo.setInputFiles({name:'checkpoint.png',mimeType:'image/png',buffer:Buffer.from('Synthetic photo wiring fixture')});
@@ -478,4 +485,205 @@ test('phone analysis selects a bounded original evidence set and later uploads d
   await expect(analyze).toBeDisabled();
   expect(state.assets).toHaveLength(10);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+async function trackNativeCamera(page: import('@playwright/test').Page) {
+  await page.addInitScript(() => {
+    const original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    const state = { constraints: [] as MediaStreamConstraints[], tracks: [] as MediaStreamTrack[] };
+    (window as unknown as { nativeCapture: typeof state }).nativeCapture = state;
+    navigator.mediaDevices.getUserMedia = async constraints => {
+      state.constraints.push(constraints || {});
+      const stream = await original(constraints); state.tracks.push(...stream.getTracks()); return stream;
+    };
+  });
+}
+
+async function cameraTracksEnded(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const state = (window as unknown as { nativeCapture: { tracks: MediaStreamTrack[] } }).nativeCapture;
+    return state.tracks.length > 0 && state.tracks.every(track => track.readyState === 'ended');
+  });
+}
+
+test('in-app photo capture stays local until reviewed and uses real JPEG bytes without starting analysis', async ({ page }) => {
+  await trackNativeCamera(page);
+  await page.setViewportSize({ width: 320, height: 844 });
+  const { project } = await createWorkshopSample(page);
+  let uploads = 0, analyses = 0;
+  page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/assets')) uploads++; if (request.method() === 'POST' && request.url().endsWith('/jobs')) analyses++; });
+  await page.goto(`/projects/${project.id}/capture`);
+  const source = page.getByRole('region', { name: 'task media controls' });
+  await source.getByRole('button', { name: 'Take photo', exact: true }).click();
+  const camera = page.getByRole('region', { name: 'task camera', exact: true });
+  await expect(camera.getByRole('button', { name: 'Capture photo', exact: true })).toBeEnabled();
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await camera.scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await camera.getByLabel('Live camera preview').evaluate(video => video.getBoundingClientRect().right <= video.parentElement!.getBoundingClientRect().right + 1)).toBe(true);
+    await page.screenshot({path:`/tmp/countershot-minimal-photo-${width}.png`});
+  }
+  await camera.getByRole('button', { name: 'Capture photo', exact: true }).click();
+  await expect(camera.getByRole('img', { name: 'Photo to review before saving' })).toBeVisible();
+  expect(uploads).toBe(0); expect(analyses).toBe(0);
+  await expect.poll(() => cameraTracksEnded(page)).toBe(true);
+  const constraints = await page.evaluate(() => (window as unknown as { nativeCapture: { constraints: MediaStreamConstraints[] } }).nativeCapture.constraints);
+  expect(constraints.at(-1)?.audio).toBe(false);
+  expect(constraints.at(-1)?.video).toMatchObject({ facingMode: { ideal: 'environment' } });
+  const saved = page.waitForResponse(response => response.request().method() === 'POST' && response.url().endsWith('/assets'));
+  await camera.getByRole('button', { name: 'Use photo', exact: true }).click();
+  const response = await saved; expect(response.status()).toBe(201);
+  const { asset } = await response.json();
+  expect(asset.mime).toBe('image/jpeg'); expect(asset.name).toMatch(/\.jpg$/); expect(asset.purpose).toBe('source');
+  const savedImage = await page.request.get(`/api/projects/${project.id}/assets/${asset.id}`);
+  expect(savedImage.ok()).toBe(true); expect(Array.from((await savedImage.body()).subarray(0, 3))).toEqual([255, 216, 255]);
+  await expect(source.getByRole('status')).toHaveText('Saved. Ready to analyze.');
+  await expect(camera).toHaveCount(0); expect(uploads).toBe(1); expect(analyses).toBe(0);
+});
+
+test('in-app video recording stops at its bound and saves a playable verified video only after review', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await trackNativeCamera(page);
+  await page.addInitScript(() => {
+    const original = window.setTimeout.bind(window);
+    window.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+      if (delay === 179250) { (window as unknown as { nativeRecordingStop: number }).nativeRecordingStop = delay; return original(handler, 1100, ...args); }
+      return original(handler, delay, ...args);
+    }) as typeof window.setTimeout;
+  });
+  const { project } = await createWorkshopSample(page);
+  let uploads = 0;
+  page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/assets')) uploads++; });
+  await page.goto(`/projects/${project.id}/capture`);
+  const source = page.getByRole('region', { name: 'task media controls' });
+  await source.getByRole('button', { name: 'Record video', exact: true }).click();
+  const camera = page.getByRole('region', { name: 'task camera', exact: true });
+  await camera.getByRole('button', { name: 'Start recording', exact: true }).click();
+  await expect(camera.getByRole('button', { name: 'Stop recording', exact: true })).toBeVisible();
+  await expect(camera.getByLabel('Recording to review before saving', { exact: true })).toBeVisible();
+  const localReview = camera.getByLabel('Recording to review before saving', { exact: true });
+  await expect.poll(() => localReview.evaluate((video: HTMLVideoElement) => video.readyState >= 2 && video.videoWidth > 0)).toBe(true);
+  await localReview.evaluate((video: HTMLVideoElement) => video.play());
+  await expect.poll(() => localReview.evaluate((video: HTMLVideoElement) => video.currentTime > 0)).toBe(true);
+  await localReview.evaluate((video: HTMLVideoElement) => video.pause());
+  await expect(camera.getByText('Stopped at the recording limit.', { exact: true })).toBeVisible();
+  await camera.scrollIntoViewIfNeeded();
+  await page.screenshot({path:'/tmp/countershot-minimal-video-review-390.png'});
+  expect(await page.evaluate(() => (window as unknown as { nativeRecordingStop: number }).nativeRecordingStop)).toBeLessThan(180000);
+  expect(uploads).toBe(0); await expect.poll(() => cameraTracksEnded(page)).toBe(true);
+  const saved = page.waitForResponse(response => response.request().method() === 'POST' && response.url().endsWith('/assets'));
+  await camera.getByRole('button', { name: 'Use video', exact: true }).click();
+  const response = await saved; expect(response.status()).toBe(201);
+  const body = await response.json(); expect(body.asset.mime).toBe('video/mp4'); expect(body.asset.durationMs).toBeGreaterThan(0); expect(body.asset.durationMs).toBeLessThanOrEqual(180000);
+  const original = body.asset.original || body.asset;
+  expect(original.mime).toMatch(/^video\/(mp4|webm)$/); expect(original.name).toMatch(original.mime === 'video/mp4' ? /\.mp4$/ : /\.webm$/); expect(original.byteLength).toBeGreaterThan(0); expect(original.byteLength).toBeLessThan(50 * 1024 * 1024);
+  const playback = await page.request.get(`/api/projects/${project.id}/assets/${body.asset.id}`); expect(playback.ok()).toBe(true); expect(playback.headers()['content-type']).toBe('video/mp4');
+  await expect(source.getByRole('status')).toHaveText('Saved. Ready to analyze.'); expect(uploads).toBe(1);
+});
+
+test('a failed native capture upload retains the same local photo for an explicit retry', async ({ page }) => {
+  const { project } = await createWorkshopSample(page);
+  let attempts = 0;
+  await page.route(`**/api/projects/${project.id}/assets`, async route => { attempts++; if (attempts === 1) await route.fulfill({ status: 503, json: { error: 'Synthetic upload outage before saving.' } }); else await route.continue(); });
+  await page.goto(`/projects/${project.id}/capture`);
+  const source = page.getByRole('region', { name: 'task media controls' });
+  await source.getByRole('button', { name: 'Take photo', exact: true }).click();
+  const camera = page.getByRole('region', { name: 'task camera', exact: true });
+  await camera.getByRole('button', { name: 'Capture photo', exact: true }).click();
+  const image = camera.getByRole('img', { name: 'Photo to review before saving' }); await expect(image).toBeVisible();
+  const before = await image.getAttribute('src');
+  await camera.getByRole('button', { name: 'Use photo', exact: true }).click();
+  await expect(source.locator('.error-banner')).toContainText('Synthetic upload outage');
+  await expect(image).toHaveAttribute('src', before!); await expect(camera.getByRole('button', { name: 'Use photo', exact: true })).toBeEnabled();
+  await camera.getByRole('button', { name: 'Use photo', exact: true }).click();
+  await expect(source.getByRole('status')).toHaveText('Saved. Ready to analyze.'); expect(attempts).toBe(2);
+});
+
+test('denied permission and unsupported recording offer the device camera without uploading', async ({ page }) => {
+  const { project } = await createWorkshopSample(page);
+  let uploads = 0; page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/assets')) uploads++; });
+  await page.addInitScript(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('Synthetic denied camera permission', 'NotAllowedError'); }; });
+  await page.goto(`/projects/${project.id}/capture`);
+  const source = page.getByRole('region', { name: 'task media controls' }); await source.getByRole('button', { name: 'Take photo', exact: true }).click();
+  await expect(source.getByRole('alert')).toContainText('Camera permission is off');
+  const chooser = page.waitForEvent('filechooser'); await source.getByRole('button', { name: 'Use device camera', exact: true }).click();
+  expect(await (await chooser).element().getAttribute('capture')).toBe('environment'); expect(uploads).toBe(0);
+  await page.addInitScript(() => { MediaRecorder.isTypeSupported = () => false; });
+  await page.reload(); // A separate fresh context supplies a real fake camera below.
+  await page.evaluate(() => { delete (navigator.mediaDevices as unknown as Record<string, unknown>).getUserMedia; });
+  await source.getByRole('button', { name: 'Record video', exact: true }).click();
+  await expect(source.getByRole('alert')).toContainText('cannot record video');
+  expect(uploads).toBe(0);
+});
+
+async function deferNativeCamera(page: import('@playwright/test').Page) {
+  await page.addInitScript(() => {
+    const original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    const pending: { constraints: MediaStreamConstraints | undefined; resolve: (stream: MediaStream) => void }[] = [];
+    const state = { requests: 0, tracks: [] as MediaStreamTrack[], release: async () => {
+      for (const request of pending.splice(0)) { const stream = await original(request.constraints); state.tracks.push(...stream.getTracks()); request.resolve(stream); }
+    } };
+    (window as unknown as { deferredNativeCamera: typeof state }).deferredNativeCamera = state;
+    navigator.mediaDevices.getUserMedia = constraints => new Promise<MediaStream>(resolve => { state.requests++; pending.push({ constraints, resolve }); });
+  });
+}
+async function deferredNativeTracksEnded(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const state = (window as unknown as { deferredNativeCamera: { requests: number; tracks: MediaStreamTrack[] } }).deferredNativeCamera;
+    return state.tracks.length === state.requests && state.tracks.length > 0 && state.tracks.every(track => track.readyState === 'ended');
+  });
+}
+async function nativeRequests(page: import('@playwright/test').Page) { return page.evaluate(() => (window as unknown as { deferredNativeCamera: { requests: number } }).deferredNativeCamera.requests); }
+async function releaseNativeCamera(page: import('@playwright/test').Page) { await page.evaluate(() => (window as unknown as { deferredNativeCamera: { release: () => Promise<void> } }).deferredNativeCamera.release()); }
+
+test('closing or backgrounding a pending camera releases late permission results without capture', async ({ page }) => {
+  await deferNativeCamera(page);
+  const { project } = await createWorkshopSample(page);
+  let uploads = 0; page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/assets')) uploads++; });
+  await page.goto(`/projects/${project.id}/capture`);
+  const source = page.getByRole('region', { name: 'task media controls' });
+  await source.getByRole('button', { name: 'Take photo', exact: true }).click();
+  await expect.poll(() => nativeRequests(page)).toBeGreaterThan(0);
+  const firstRequests = await nativeRequests(page);
+  await source.getByRole('button', { name: 'Close camera', exact: true }).click();
+  await releaseNativeCamera(page);
+  await expect.poll(() => deferredNativeTracksEnded(page)).toBe(true);
+  await source.getByRole('button', { name: 'Take photo', exact: true }).click();
+  await expect.poll(() => nativeRequests(page)).toBeGreaterThan(firstRequests);
+  await expect(source.getByText('Opening camera…', { exact: true })).toBeVisible();
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); });
+  await expect(source.getByRole('alert')).toContainText('Camera paused');
+  await releaseNativeCamera(page);
+  await expect.poll(() => deferredNativeTracksEnded(page)).toBe(true);
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' }); document.dispatchEvent(new Event('visibilitychange')); });
+  await expect(source.getByRole('button', { name: 'Try camera again', exact: true })).toBeEnabled(); expect(uploads).toBe(0);
+});
+
+test('a project becoming busy fences pending permission and lets the camera recover afterward', async ({ page }) => {
+  await deferNativeCamera(page);
+  const { project } = await createWorkshopSample(page);
+  let releaseJob!: () => void;
+  const job = new Promise<void>(resolve => { releaseJob = resolve; });
+  await page.route(`**/api/projects/${project.id}/jobs`, async route => { await job; await route.fulfill({ status: 201, json: { job: { id: 'synthetic-paused-job' } } }); });
+  await page.goto(`/projects/${project.id}/capture`);
+  const source = page.getByRole('region', { name: 'task media controls' });
+  await source.getByLabel('Take task photo', { exact: true }).setInputFiles({ name: 'synthetic-scene.png', mimeType: 'image/png', buffer: readFileSync('docs/examples/camera-harness_routing.png') });
+  await expect(source.getByRole('status')).toHaveText('Saved. Ready to analyze.');
+  await source.getByRole('button', { name: 'Take photo', exact: true }).click();
+  await expect.poll(() => nativeRequests(page)).toBeGreaterThan(0);
+  const firstRequests = await nativeRequests(page);
+  await page.getByRole('button', { name: 'Analyze the job', exact: true }).click();
+  await expect(source.getByRole('alert')).toContainText('Camera paused while the project is busy');
+  releaseJob();
+  await expect(source.getByRole('button', { name: 'Try camera again', exact: true })).toBeEnabled();
+  await releaseNativeCamera(page);
+  await expect.poll(() => deferredNativeTracksEnded(page)).toBe(true);
+  await expect(source.getByRole('button', { name: 'Capture photo', exact: true })).toHaveCount(0);
+  await source.getByRole('button', { name: 'Try camera again', exact: true }).click();
+  await expect.poll(() => nativeRequests(page)).toBeGreaterThan(firstRequests);
+  await releaseNativeCamera(page);
+  await expect(source.getByRole('button', { name: 'Capture photo', exact: true })).toBeEnabled();
+  await source.getByRole('button', { name: 'Close camera', exact: true }).click();
+  await expect.poll(() => deferredNativeTracksEnded(page)).toBe(true);
 });
