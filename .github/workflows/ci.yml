@@ -13,5 +13,31 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
+      - name: Run unit and API tests
+        id: tests
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee "$RUNNER_TEMP/countershot-tests.log"
+      - name: Report failed test details
+        if: ${{ failure() && steps.tests.outcome == 'failure' }}
+        shell: python3 {0}
+        run: |
+          import html
+          import os
+          import pathlib
+          import re
+          import subprocess
+
+          log = pathlib.Path(os.environ['RUNNER_TEMP'], 'countershot-tests.log')
+          output = log.read_text(errors='replace') if log.exists() else 'Test output was unavailable.'
+          output = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', output)
+          output = re.sub(r'(?i)(authorization\s*[:=]\s*)[^\r\n]+', r'\1[redacted]', output)
+          output = re.sub(r'\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]{12,})\b', '[redacted]', output)
+          tail = '\n'.join(output.splitlines()[-160:])[-24000:]
+          versions = '\n'.join(subprocess.check_output(command, text=True).splitlines()[0]
+                               for command in (['node', '--version'], ['ffmpeg', '-version']))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Unit/API test failure\n\n<pre>' + html.escape(versions + '\n\n' + tail) + '</pre>\n')
+          annotation = tail[-6000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=Unit/API test failure::' + annotation)
       - run: npm run build
