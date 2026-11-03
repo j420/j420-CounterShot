@@ -38,6 +38,8 @@ jobs:
                                for command in (['node', '--version'], ['ffmpeg', '-version']))
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
               summary.write('## Unit/API test failure\n\n<pre>' + html.escape(versions + '\n\n' + tail) + '</pre>\n')
-          annotation = tail[-6000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          failure_start = output.rfind('✖ failing tests:')
+          failures = output[failure_start:] if failure_start >= 0 else output[-2500:]
+          annotation = (versions + '\n\n' + failures)[:2500].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
           print('::error title=Unit/API test failure::' + annotation)
       - run: npm run build
