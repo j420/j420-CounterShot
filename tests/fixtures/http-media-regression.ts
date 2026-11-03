@@ -65,6 +65,21 @@ try {
     }
     assert.equal(assets().length, 3);
     assert.equal((await files()).length, 3);
+  } else if (scenario === 'single-frame') {
+    const singlePath = path.join(process.env.DATA_ROOT!, 'single-frame.mp4');
+    await ffmpeg(['-f', 'lavfi', '-i', 'color=c=blue:s=32x32:r=10', '-frames:v', '1', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', singlePath]);
+    const metadata = JSON.parse((await run('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0',
+      '-show_entries', 'format=duration:stream=nb_read_frames', '-of', 'json', singlePath])).stdout);
+    assert.equal(Number(metadata.streams[0].nb_read_frames), 1);
+    assert.equal(Number(metadata.format.duration), 0.1);
+    const bytes = await readFile(singlePath);
+    const response = await submit(bytes, 'single-frame.mp4');
+    const value = await response.json();
+    assert.equal(response.status, 201, value.error);
+    assert.equal(value.asset.durationMs, 100, 'The final frame display interval counts even when its timestamp is zero.');
+    assert.equal(value.asset.sha256, store.bytesHash(bytes));
+    assert.equal(assets().length, 1);
+    assert.equal((await files()).length, 1);
   } else if (scenario === 'invalid') {
     const boxes: Buffer[] = [];
     for (let offset = 0; offset + 8 <= validVideo.length;) {
@@ -100,9 +115,10 @@ try {
     assert.equal((await submit(noScanData, 'broken.jpg')).status, 415);
     assert.equal(assets().length, 0);
     assert.deepEqual(await files(), []);
-  } else if (scenario === 'duration') {
+  } else if (scenario === 'duration' || scenario === 'duration-final-frame') {
+    const frameCount = scenario === 'duration' ? 20 : 11;
     const longerPath = path.join(process.env.DATA_ROOT!, 'longer.mp4');
-    await ffmpeg(['-f', 'lavfi', '-i', 'color=c=blue:s=32x32:r=10', '-t', '2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', longerPath]);
+    await ffmpeg(['-f', 'lavfi', '-i', 'color=c=blue:s=32x32:r=10', '-frames:v', String(frameCount), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', longerPath]);
     const misreported = await readFile(longerPath);
     // Misstate movie/track durations without changing the actual sample times.
     for (const kind of ['mvhd', 'mdhd']) {
@@ -116,8 +132,10 @@ try {
     assert.ok(trackHeader > 0);
     misreported.writeUInt32BE(1000, trackHeader + 24);
     await writeFile(longerPath, misreported);
-    const metadata = JSON.parse((await run('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'json', longerPath])).stdout);
+    const metadata = JSON.parse((await run('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0',
+      '-show_entries', 'format=duration:stream=nb_read_frames', '-of', 'json', longerPath])).stdout);
     assert.equal(Number(metadata.format.duration), 1);
+    assert.equal(Number(metadata.streams[0].nb_read_frames), frameCount, 'Understated headers must leave every encoded sample available to the decoder.');
     process.env.MAX_CLIP_SECONDS = '1';
     const response = await submit(misreported, 'misreported-duration.mp4');
     assert.equal(response.status, 400, JSON.stringify(await response.json()));

@@ -61,18 +61,33 @@ async function inspectMedia(filePath: string, format: MediaFormat, maxSeconds: n
     durationError(maxSeconds);
 
   // Decode complete real frames; headers, cover art and corrupt images cannot qualify.
-  // The extra second detects a misleading declared duration without an unbounded decode.
+  // Wrapped frames retain each decoded presentation time and duration without re-encoding pixels.
+  // Decode/output budgets bound forged headers without cutting off an over-limit final frame.
   const decoded = await run('ffmpeg', ['-v', 'error', '-xerror', '-nostdin', '-threads', '2', '-err_detect', 'explode',
     '-max_pixels', String(maxPixels), '-protocol_whitelist', 'file,pipe', '-i', filePath,
     '-map', `0:${stream.index}`, '-an', '-sn', '-dn', '-vsync', '0',
-    ...(format.kind === 'video' ? ['-t', String(maxSeconds + 1)] : ['-frames:v', '1']),
-    '-progress', 'pipe:1', '-nostats', '-f', 'null', '-',
-  ], { timeout: 30_000, maxBuffer: 1_000_000 });
-  const frames = Number([...decoded.stdout.matchAll(/^frame=(\d+)$/gm)].at(-1)?.[1]);
+    ...(format.kind === 'image' ? ['-frames:v', '1'] : []),
+    '-map_metadata', '-1', '-c:v', 'wrapped_avframe', '-threads', '1', '-enc_time_base', '1:1000000', '-f', 'framecrc', 'pipe:1',
+  ], { timeout: 30_000, maxBuffer: 8_000_000 });
+  const records = decoded.stdout.split(/\r?\n/).filter(line => line.trim() && !line.startsWith('#')).map(line => line.split(','));
+  const frames = records.length;
   if (!Number.isSafeInteger(frames) || frames < 1) fail(415, 'The file contains no decodable visual frames.');
+  if (records.some(record => record.length < 6 || record[0].trim() !== '0'))
+    fail(415, 'Decoded media frame metadata could not be verified.');
   let durationMs: number | null = null;
   if (format.kind === 'video') {
-    durationMs = Math.round(Number([...decoded.stdout.matchAll(/^out_time_us=(\d+)$/gm)].at(-1)?.[1]) / 1000);
+    const timeBase = decoded.stdout.match(/^#tb 0:\s*(\d+)\/(\d+)\s*$/m);
+    const secondsPerTick = timeBase ? Number(timeBase[1]) / Number(timeBase[2]) : NaN;
+    let firstTimestamp = Infinity, finalFrameEnd = -Infinity;
+    for (const record of records) {
+      const timestamp = Number(record[2]), duration = Number(record[3]);
+      if (!Number.isSafeInteger(timestamp) || !Number.isSafeInteger(duration) || duration <= 0 || !Number.isSafeInteger(timestamp + duration))
+        fail(415, 'Video frame timestamps and durations could not be verified.');
+      firstTimestamp = Math.min(firstTimestamp, timestamp);
+      finalFrameEnd = Math.max(finalFrameEnd, timestamp + duration);
+    }
+    // Progress out_time differs between FFmpeg releases: it can exclude the final frame.
+    durationMs = Math.round((finalFrameEnd - firstTimestamp) * secondsPerTick * 1000);
     if (!Number.isFinite(durationMs) || durationMs <= 0) fail(415, 'Video duration could not be verified from decoded frames.');
     if (durationMs > maxSeconds * 1000) durationError(maxSeconds);
   }
